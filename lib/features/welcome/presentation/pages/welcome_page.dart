@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
+import 'package:leafeat_mobile/features/explore/presentation/pages/explore_page.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -42,9 +43,9 @@ class WelcomePage extends StatelessWidget {
               const SizedBox(height: 32),
               FilledButton.icon(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('O LeafEat está funcionando!'),
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const ExplorePage(),
                     ),
                   );
                 },
