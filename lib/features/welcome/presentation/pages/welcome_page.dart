@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:leafeat_mobile/app/navigation/main_navigation.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
-import 'package:leafeat_mobile/features/explore/presentation/pages/explore_page.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -43,9 +43,9 @@ class WelcomePage extends StatelessWidget {
               const SizedBox(height: 32),
               FilledButton.icon(
                 onPressed: () {
-                  Navigator.of(context).push(
+                  Navigator.of(context).pushReplacement(
                     MaterialPageRoute<void>(
-                      builder: (_) => const ExplorePage(),
+                      builder: (_) => const MainNavigation(),
                     ),
                   );
                 },
