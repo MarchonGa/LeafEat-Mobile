@@ -12,7 +12,9 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
+  final _pageController = PageController();
   int _selectedIndex = 0;
+  bool _isAnimating = false;
 
   static const _pages = [
     MapPage(),
@@ -22,17 +24,50 @@ class _MainNavigationState extends State<MainNavigation> {
   ];
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectPage(int index) async {
+    if (index == _selectedIndex || _isAnimating) return;
+
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _pageController.jumpToPage(index);
+      return;
+    }
+
+    final distance = (index - _selectedIndex).abs();
+    final duration = Duration(
+      milliseconds: 320 + (distance * 100),
+    );
+
+    setState(() => _isAnimating = true);
+
+    await _pageController.animateToPage(
+      index,
+      duration: duration,
+      curve: Curves.easeInOutCubic,
+    );
+
+    if (mounted) {
+      setState(() => _isAnimating = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() => _selectedIndex = index);
+        },
         children: _pages,
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
-        },
+        onDestinationSelected: _selectPage,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.map_outlined),
