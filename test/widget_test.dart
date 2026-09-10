@@ -33,6 +33,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Visitante'), findsOneWidget);
+    expect(find.text('Entrar'), findsOneWidget);
+    expect(find.text('Criar conta'), findsOneWidget);
     expect(find.text('Locais favoritos'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Locais favoritos'));
+    await tester.tap(find.text('Locais favoritos'));
+    await tester.pump(const Duration(milliseconds: 1000));
+
+    expect(
+      find.text(
+        'Entre ou crie uma conta para acessar seus favoritos.',
+      ),
+      findsOneWidget,
+    );
   });
 }
