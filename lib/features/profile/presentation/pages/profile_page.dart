@@ -201,6 +201,15 @@ class _ProfilePageState extends State<ProfilePage>
                 ),
                 const Divider(height: 1),
                 _LockedOption(
+                  icon: Icons.donut_large,
+                  title: 'Ingestão de macros e calorias',
+                  subtitle: 'Acompanhe suas metas e refeições diárias',
+                  onTap: () => _requestAuthentication(
+                    'sua ingestão de macros e calorias',
+                  ),
+                ),
+                const Divider(height: 1),
+                _LockedOption(
                   icon: Icons.tune,
                   title: 'Preferências alimentares',
                   subtitle: 'Personalize os resultados exibidos',
