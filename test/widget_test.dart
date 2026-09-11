@@ -36,6 +36,10 @@ void main() {
     expect(find.text('Entrar'), findsOneWidget);
     expect(find.text('Criar conta'), findsOneWidget);
     expect(find.text('Locais favoritos'), findsOneWidget);
+    expect(
+      find.text('Ingestão de macros e calorias'),
+      findsOneWidget,
+    );
 
     await tester.ensureVisible(find.text('Locais favoritos'));
     await tester.tap(find.text('Locais favoritos'));
