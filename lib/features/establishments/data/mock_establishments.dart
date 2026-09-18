@@ -1,0 +1,118 @@
+import 'package:leafeat_mobile/features/establishments/domain/models/dish.dart';
+import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
+import 'package:leafeat_mobile/features/establishments/domain/models/review.dart';
+
+final mockEstablishments = <Establishment>[
+  Establishment(
+    id: 'sabor-natural',
+    name: 'Sabor Natural',
+    category: 'Refeições saudáveis',
+    description: 'Pratos equilibrados preparados com ingredientes frescos.',
+    address: 'Rua Coronel Alexanzito, 820 — Centro',
+    distanceKm: 0.45,
+    badgePercentage: 100,
+    reviews: [
+      Review(
+        id: 'review-est-1',
+        authorName: 'Marina',
+        rating: 4.8,
+        comment: 'Cardápio variado e informações fáceis de consultar.',
+        createdAt: DateTime(2026, 9, 10),
+      ),
+    ],
+    dishes: [
+      Dish(
+        id: 'bowl-frango',
+        name: 'Bowl de frango e legumes',
+        description: 'Frango grelhado, arroz integral, brócolis e cenoura.',
+        price: 29.90,
+        calories: 510,
+        proteinGrams: 38,
+        carbohydrateGrams: 54,
+        fatGrams: 14,
+        fiberGrams: 8,
+        isVegan: false,
+        isLactoseFree: true,
+        reviews: [
+          Review(
+            id: 'review-dish-1',
+            authorName: 'Ana',
+            rating: 4.9,
+            comment: 'Bem servido e saboroso.',
+            createdAt: DateTime(2026, 9, 12),
+          ),
+        ],
+      ),
+      const Dish(
+        id: 'salada-grao-bico',
+        name: 'Salada de grão-de-bico',
+        description: 'Grão-de-bico, folhas, tomate, pepino e molho cítrico.',
+        price: 24.50,
+        calories: 360,
+        proteinGrams: 15,
+        carbohydrateGrams: 48,
+        fatGrams: 12,
+        fiberGrams: 11,
+        isVegan: true,
+        isLactoseFree: true,
+      ),
+    ],
+  ),
+  Establishment(
+    id: 'horta-da-praca',
+    name: 'Horta da Praça',
+    category: 'Comida vegetariana',
+    description: 'Receitas vegetarianas e ingredientes de produtores locais.',
+    address: 'Praça da Independência, 35 — Centro',
+    distanceKm: 1.2,
+    badgePercentage: 64,
+    reviews: [
+      Review(
+        id: 'review-est-2',
+        authorName: 'Carlos',
+        rating: 4.6,
+        comment: 'Boas opções vegetarianas.',
+        createdAt: DateTime(2026, 9, 8),
+      ),
+    ],
+    dishes: [
+      const Dish(
+        id: 'risoto-cogumelos',
+        name: 'Risoto de cogumelos',
+        description: 'Arroz arbóreo, cogumelos frescos e ervas.',
+        price: 32,
+        calories: 620,
+        proteinGrams: 17,
+        carbohydrateGrams: 88,
+        fatGrams: 22,
+        fiberGrams: 7,
+        isVegan: false,
+        isLactoseFree: false,
+      ),
+    ],
+  ),
+  const Establishment(
+    id: 'vida-leve',
+    name: 'Vida Leve',
+    category: 'Lanches e sucos',
+    description: 'Sucos naturais, sanduíches e lanches rápidos.',
+    address: 'Avenida Dragão do Mar, 210 — Centro',
+    distanceKm: 2,
+    badgePercentage: 26,
+    dishes: [
+      Dish(
+        id: 'sanduiche-vegetal',
+        name: 'Sanduíche vegetal',
+        description: 'Pão integral, pasta de grão-de-bico e vegetais.',
+        price: 18.90,
+        calories: 340,
+        proteinGrams: 12,
+        carbohydrateGrams: 49,
+        fatGrams: 11,
+        fiberGrams: 9,
+        isVegan: true,
+        isLactoseFree: true,
+      ),
+    ],
+  ),
+];

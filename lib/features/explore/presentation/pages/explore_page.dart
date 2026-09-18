@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
+import 'package:leafeat_mobile/features/establishments/data/mock_establishments.dart';
+import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
+import 'package:leafeat_mobile/features/explore/presentation/pages/establishment_detail_page.dart';
+import 'package:leafeat_mobile/features/explore/presentation/widgets/badge_chip.dart';
 
 class ExplorePage extends StatefulWidget {
   const ExplorePage({super.key});
@@ -12,30 +16,6 @@ class _ExplorePageState extends State<ExplorePage> {
   final _searchController = TextEditingController();
   String _query = '';
 
-  static const _places = [
-    (
-      name: 'Sabor Natural',
-      category: 'Refeições saudáveis',
-      distance: '450 m',
-      rating: '4,8',
-      icon: Icons.restaurant,
-    ),
-    (
-      name: 'Horta da Praça',
-      category: 'Produtos frescos',
-      distance: '1,2 km',
-      rating: '4,6',
-      icon: Icons.local_grocery_store,
-    ),
-    (
-      name: 'Vida Leve',
-      category: 'Lanches e sucos',
-      distance: '2,0 km',
-      rating: '4,5',
-      icon: Icons.local_cafe,
-    ),
-  ];
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -44,37 +24,26 @@ class _ExplorePageState extends State<ExplorePage> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredPlaces = _places.where((place) {
-      final search = _query.toLowerCase();
-      return place.name.toLowerCase().contains(search) ||
-          place.category.toLowerCase().contains(search);
+    final search = _query.trim().toLowerCase();
+    final establishments = mockEstablishments.where((establishment) {
+      return establishment.name.toLowerCase().contains(search) ||
+          establishment.category.toLowerCase().contains(search) ||
+          establishment.dishes.any((dish) => dish.name.toLowerCase().contains(search));
     }).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Explorar locais'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
-      ),
+      appBar: AppBar(title: const Text('Explorar locais'), backgroundColor: AppColors.primary, foregroundColor: AppColors.onPrimary),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text(
-              'O que você procura?',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            const Text('O que você procura?', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            const Text(
-              'Descubra opções de alimentação próximas de você.',
-            ),
+            const Text('Consulte restaurantes e pratos mesmo sem criar uma conta.'),
             const SizedBox(height: 20),
             SearchBar(
               controller: _searchController,
-              hintText: 'Buscar local ou categoria',
+              hintText: 'Buscar restaurante, categoria ou prato',
               leading: const Icon(Icons.search),
               trailing: [
                 if (_query.isNotEmpty)
@@ -89,86 +58,66 @@ class _ExplorePageState extends State<ExplorePage> {
               ],
               onChanged: (value) => setState(() => _query = value),
             ),
-            const SizedBox(height: 16),
-            const Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                Chip(
-                  avatar: Icon(Icons.near_me, size: 18),
-                  label: Text('Mais próximos'),
-                ),
-                Chip(
-                  avatar: Icon(Icons.eco, size: 18),
-                  label: Text('Saudáveis'),
-                ),
-                Chip(
-                  avatar: Icon(Icons.star, size: 18),
-                  label: Text('Bem avaliados'),
-                ),
-              ],
-            ),
             const SizedBox(height: 24),
-            Text(
-              '${filteredPlaces.length} locais encontrados',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('${establishments.length} estabelecimentos encontrados', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
-            if (filteredPlaces.isEmpty)
+            if (establishments.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 48),
-                child: Column(
-                  children: [
-                    Icon(Icons.search_off, size: 56),
-                    SizedBox(height: 12),
-                    Text('Nenhum local encontrado.'),
-                  ],
-                ),
+                child: Column(children: [Icon(Icons.search_off, size: 56), SizedBox(height: 12), Text('Nenhum estabelecimento encontrado.')]),
               )
             else
-              ...filteredPlaces.map(
-                (place) => Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    leading: CircleAvatar(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.onPrimary,
-                      child: Icon(place.icon),
-                    ),
-                    title: Text(
-                      place.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(
-                        '${place.category} • ${place.distance}',
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 20),
-                        const SizedBox(width: 4),
-                        Text(place.rating),
-                      ],
-                    ),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Os detalhes de ${place.name} serão adicionados em breve.',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
+              ...establishments.map((establishment) => _EstablishmentCard(establishment: establishment)),
           ],
         ),
       ),
     );
   }
+}
+
+class _EstablishmentCard extends StatelessWidget {
+  const _EstablishmentCard({required this.establishment});
+
+  final Establishment establishment;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => EstablishmentDetailPage(establishment: establishment))),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const CircleAvatar(backgroundColor: AppColors.primary, foregroundColor: AppColors.onPrimary, child: Icon(Icons.restaurant)),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(establishment.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17))),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text('${establishment.category} • ${_formatDistance(establishment.distanceKm)}'),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(Icons.star, color: Colors.amber, size: 20),
+                  const SizedBox(width: 4),
+                  Text(establishment.averageRating.toStringAsFixed(1)),
+                  const Spacer(),
+                  BadgeChip(badge: establishment.badge),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDistance(double distanceKm) => distanceKm < 1 ? '${(distanceKm * 1000).round()} m' : '${distanceKm.toStringAsFixed(1)} km';
 }

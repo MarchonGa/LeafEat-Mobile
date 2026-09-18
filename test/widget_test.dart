@@ -22,7 +22,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('O que você procura?'), findsOneWidget);
-    expect(find.text('3 locais encontrados'), findsOneWidget);
+    expect(find.text('3 estabelecimentos encontrados'), findsOneWidget);
 
     await tester.tap(find.text('Avaliar'));
     await tester.pumpAndSettle();
