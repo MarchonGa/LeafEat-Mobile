@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:leafeat_mobile/features/establishments/domain/models/badge.dart';
 
 class BadgeChip extends StatelessWidget {
