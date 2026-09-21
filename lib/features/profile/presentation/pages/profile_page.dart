@@ -146,7 +146,7 @@ class _RestaurantProfile extends StatelessWidget {
         Text('Conquistas e selos', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 10),
         const Wrap(spacing: 8, runSpacing: 8, children: [
-          Chip(avatar: Icon(Icons.workspace_premium, color: Color(0xFFC28B00)), label: Text('Gold — 100% de cobertura')),
+          Chip(avatar: Icon(Icons.workspace_premium, color: Color(0xFFC28B00)), label: Text('Ouro — 100% de cobertura')),
           Chip(avatar: Icon(Icons.eco, color: AppColors.primary), label: Text('Opções veganas')),
           Chip(avatar: Icon(Icons.no_food, color: AppColors.primary), label: Text('Opções sem lactose')),
         ]),

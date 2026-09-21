@@ -39,6 +39,6 @@ class Badge {
     BadgeLevel.none => 'Sem selo',
     BadgeLevel.bronze => 'Bronze',
     BadgeLevel.silver => 'Prata',
-    BadgeLevel.gold => 'Gold',
+    BadgeLevel.gold => 'Ouro',
   };
 }

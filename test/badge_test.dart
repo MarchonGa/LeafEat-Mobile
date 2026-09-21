@@ -17,8 +17,11 @@ void main() {
       expect(Badge.fromPercentage(99.99).level, BadgeLevel.silver);
     });
 
-    test('awards Gold at 100%', () {
-      expect(Badge.fromPercentage(100).level, BadgeLevel.gold);
+    test('awards Ouro at 100%', () {
+      final badge = Badge.fromPercentage(100);
+
+      expect(badge.level, BadgeLevel.gold);
+      expect(badge.label, 'Ouro');
     });
   });
 }

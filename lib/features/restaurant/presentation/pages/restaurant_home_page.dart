@@ -32,7 +32,7 @@ class RestaurantHomePage extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.all(18),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [Icon(Icons.workspace_premium, color: Color(0xFFC28B00)), SizedBox(width: 8), Text('Selo Gold', style: TextStyle(fontWeight: FontWeight.bold))]),
+                Row(children: [Icon(Icons.workspace_premium, color: Color(0xFFC28B00)), SizedBox(width: 8), Text('Selo Ouro', style: TextStyle(fontWeight: FontWeight.bold))]),
                 SizedBox(height: 10),
                 LinearProgressIndicator(value: 1),
                 SizedBox(height: 8),
