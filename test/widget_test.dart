@@ -1,30 +1,55 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:leafeat_mobile/main.dart';
+import 'package:leafeat_mobile/app/app.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('User navigates through the main LeafEat areas', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const LeafEatApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Bem-vindo ao LeafEat!'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.tap(find.text('Explorar locais'));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(
+      find.text('O mapa interativo será exibido aqui'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Explorar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('O que você procura?'), findsOneWidget);
+    expect(find.text('3 estabelecimentos encontrados'), findsOneWidget);
+
+    await tester.tap(find.text('Avaliar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Avalie sua experiência'), findsOneWidget);
+
+    await tester.tap(find.text('Perfil'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Visitante'), findsOneWidget);
+    expect(find.text('Entrar'), findsOneWidget);
+    expect(find.text('Criar conta'), findsOneWidget);
+    expect(find.text('Locais favoritos'), findsOneWidget);
+    expect(
+      find.text('Ingestão de macros e calorias'),
+      findsOneWidget,
+    );
+
+    await tester.ensureVisible(find.text('Locais favoritos'));
+    await tester.tap(find.text('Locais favoritos'));
+    await tester.pump(const Duration(milliseconds: 1000));
+
+    expect(
+      find.text(
+        'Entre ou crie uma conta para acessar seus favoritos.',
+      ),
+      findsOneWidget,
+    );
   });
 }
