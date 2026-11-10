@@ -4,6 +4,9 @@ import 'package:leafeat_mobile/app/app.dart';
 
 void main() {
   testWidgets('switches between guest, customer, and restaurant views', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     await tester.pumpWidget(const LeafEatApp());
     await tester.tap(find.text('Explorar locais'));
     await tester.pumpAndSettle();
@@ -13,8 +16,7 @@ void main() {
     expect(find.text('Visitante'), findsOneWidget);
 
     final customerChip = find.widgetWithText(ChoiceChip, 'Cliente');
-    await tester.ensureVisible(customerChip);
-    await tester.pumpAndSettle();
+    expect(customerChip, findsOneWidget);
     await tester.tap(customerChip);
     await tester.pumpAndSettle();
 
@@ -25,8 +27,7 @@ void main() {
       ChoiceChip,
       'Restaurante',
     );
-    await tester.ensureVisible(restaurantChip);
-    await tester.pumpAndSettle();
+    expect(restaurantChip, findsOneWidget);
     await tester.tap(restaurantChip);
     await tester.pumpAndSettle();
 
