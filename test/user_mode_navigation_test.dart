@@ -13,7 +13,7 @@ void main() {
     await tester.tap(find.text('Perfil'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Visitante'), findsOneWidget);
+    expect(find.text('Você está navegando sem uma conta.'), findsOneWidget);
 
     final customerChip = find.widgetWithText(ChoiceChip, 'Cliente');
     expect(customerChip, findsOneWidget);
