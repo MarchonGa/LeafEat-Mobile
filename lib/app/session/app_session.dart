@@ -16,7 +16,7 @@ class AppSession extends ChangeNotifier {
 
   static const _tokenKey = 'auth_token';
   static const _userKey = 'auth_user';
-  final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
+  SharedPreferencesAsync get _preferences => SharedPreferencesAsync();
 
   final ApiClient apiClient;
   late final AuthRepository authRepository;
