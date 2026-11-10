@@ -18,6 +18,6 @@ void main() {
 
     expect(find.text('Informações nutricionais'), findsOneWidget);
     expect(find.text('510 kcal'), findsOneWidget);
-    expect(find.text('Sem lactose'), findsOneWidget);
+    expect(find.text('Proteínas'), findsOneWidget);
   });
 }

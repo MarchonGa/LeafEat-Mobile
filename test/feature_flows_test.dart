@@ -25,6 +25,13 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: ReviewFormPage()));
     expect(find.text('Nota do prato: 5 ★'), findsOneWidget);
     expect(find.text('Nota do ambiente: 5 ★'), findsOneWidget);
+
+    await tester.drag(
+      find.byType(ListView),
+      const Offset(0, -400),
+    );
+    await tester.pumpAndSettle();
+
     expect(find.text('Enviar avaliação'), findsOneWidget);
   });
 }

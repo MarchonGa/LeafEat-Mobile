@@ -41,9 +41,14 @@ void main() {
       findsOneWidget,
     );
 
-    await tester.ensureVisible(find.text('Locais favoritos'));
-    await tester.tap(find.text('Locais favoritos'));
-    await tester.pump(const Duration(milliseconds: 1000));
+    final favoritesTile = find.widgetWithText(
+      ListTile,
+      'Locais favoritos',
+    );
+    await tester.ensureVisible(favoritesTile);
+    await tester.pumpAndSettle();
+    await tester.tap(favoritesTile);
+    await tester.pumpAndSettle();
 
     expect(
       find.text(

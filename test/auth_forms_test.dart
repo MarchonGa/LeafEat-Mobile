@@ -25,7 +25,9 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'cliente@teste.com');
     await tester.enterText(find.byType(TextFormField).at(2), '88999999999');
     await tester.enterText(find.byType(TextFormField).at(3), '01/01/2000');
-    await tester.tap(find.text('Continuar'));
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'Continuar').first,
+    );
     await tester.pumpAndSettle();
     expect(find.text('Intolerância à lactose'), findsOneWidget);
     expect(find.text('Camarão'), findsOneWidget);

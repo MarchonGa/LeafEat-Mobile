@@ -11,15 +11,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Visitante'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Cliente'), 300);
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Cliente'));
+
+    final customerChip = find.widgetWithText(ChoiceChip, 'Cliente');
+    await tester.scrollUntilVisible(customerChip, 300);
+    await tester.tap(customerChip);
     await tester.pumpAndSettle();
 
     expect(find.text('Cliente LeafEat'), findsOneWidget);
     expect(find.byIcon(Icons.lock_outline), findsNothing);
 
-    await tester.scrollUntilVisible(find.text('Restaurante'), 300);
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Restaurante'));
+    final restaurantChip = find.widgetWithText(
+      ChoiceChip,
+      'Restaurante',
+    );
+    await tester.scrollUntilVisible(restaurantChip, 300);
+    await tester.tap(restaurantChip);
     await tester.pumpAndSettle();
 
     expect(find.text('Início'), findsOneWidget);
