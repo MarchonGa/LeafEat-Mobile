@@ -15,7 +15,6 @@ class _DishFormPageState extends State<DishFormPage> {
   late final TextEditingController _name;
   late final TextEditingController _description;
   late final TextEditingController _price;
-  late final TextEditingController _calories;
   late final TextEditingController _protein;
   late final TextEditingController _carbohydrate;
   late final TextEditingController _fat;
@@ -30,24 +29,43 @@ class _DishFormPageState extends State<DishFormPage> {
     _name = TextEditingController(text: dish?.name);
     _description = TextEditingController(text: dish?.description);
     _price = TextEditingController(text: dish?.price.toStringAsFixed(2));
-    _calories = TextEditingController(text: dish?.calories.toString());
     _protein = TextEditingController(text: dish?.proteinGrams.toString());
     _carbohydrate = TextEditingController(text: dish?.carbohydrateGrams.toString());
     _fat = TextEditingController(text: dish?.fatGrams.toString());
     _fiber = TextEditingController(text: dish?.fiberGrams.toString());
     _isVegan = dish?.isVegan ?? false;
     _isLactoseFree = dish?.isLactoseFree ?? false;
+
+    for (final controller in [_protein, _carbohydrate, _fat]) {
+      controller.addListener(_updateCalories);
+    }
   }
 
   @override
   void dispose() {
-    for (final controller in [_name, _description, _price, _calories, _protein, _carbohydrate, _fat, _fiber]) {
+    for (final controller in [_name, _description, _price, _protein, _carbohydrate, _fat, _fiber]) {
       controller.dispose();
     }
     super.dispose();
   }
 
   double _number(TextEditingController controller) => double.parse(controller.text.replaceAll(',', '.'));
+
+  double _numberOrZero(TextEditingController controller) {
+    return double.tryParse(controller.text.replaceAll(',', '.')) ?? 0;
+  }
+
+  int get _calculatedCalories {
+    return Dish.calculateCalories(
+      proteinGrams: _numberOrZero(_protein),
+      carbohydrateGrams: _numberOrZero(_carbohydrate),
+      fatGrams: _numberOrZero(_fat),
+    );
+  }
+
+  void _updateCalories() {
+    if (mounted) setState(() {});
+  }
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
@@ -57,7 +75,7 @@ class _DishFormPageState extends State<DishFormPage> {
         name: _name.text.trim(),
         description: _description.text.trim(),
         price: _number(_price),
-        calories: _number(_calories).round(),
+        calories: _calculatedCalories,
         proteinGrams: _number(_protein),
         carbohydrateGrams: _number(_carbohydrate),
         fatGrams: _number(_fat),
@@ -70,9 +88,13 @@ class _DishFormPageState extends State<DishFormPage> {
   }
 
   String? _required(String? value) => value == null || value.trim().isEmpty ? 'Campo obrigatório.' : null;
+
   String? _numeric(String? value) {
     if (_required(value) != null) return 'Campo obrigatório.';
-    return double.tryParse(value!.replaceAll(',', '.')) == null ? 'Informe um número válido.' : null;
+    final number = double.tryParse(value!.replaceAll(',', '.'));
+    if (number == null) return 'Informe um número válido.';
+    if (number < 0) return 'O valor não pode ser negativo.';
+    return null;
   }
 
   @override
@@ -91,7 +113,18 @@ class _DishFormPageState extends State<DishFormPage> {
             const SizedBox(height: 8),
             Text('Informações por porção', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
-            _field(_calories, 'Calorias (kcal)', validator: _numeric, numeric: true),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.local_fire_department_outlined),
+                title: const Text('Calorias calculadas automaticamente'),
+                subtitle: const Text('Proteínas e carboidratos: 4 kcal/g • Gorduras: 9 kcal/g'),
+                trailing: Text(
+                  '$_calculatedCalories kcal',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
             _field(_protein, 'Proteínas (g)', validator: _numeric, numeric: true),
             _field(_carbohydrate, 'Carboidratos (g)', validator: _numeric, numeric: true),
             _field(_fat, 'Gorduras (g)', validator: _numeric, numeric: true),

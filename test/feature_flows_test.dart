@@ -14,11 +14,16 @@ void main() {
     expect(find.text('Aplicar'), findsOneWidget);
   });
 
-  testWidgets('shows dish creation fields', (tester) async {
+  testWidgets('shows dish creation fields and automatic calories', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: DishFormPage()));
     expect(find.text('Novo prato'), findsOneWidget);
     expect(find.text('Nome do prato'), findsOneWidget);
     expect(find.text('Informações por porção'), findsOneWidget);
+    expect(
+      find.text('Calorias calculadas automaticamente'),
+      findsOneWidget,
+    );
+    expect(find.text('0 kcal'), findsOneWidget);
   });
 
   testWidgets('shows dish and environment review fields', (tester) async {

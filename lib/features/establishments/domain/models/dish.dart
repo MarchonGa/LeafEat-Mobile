@@ -29,6 +29,14 @@ class Dish {
   final bool isLactoseFree;
   final List<Review> reviews;
 
+  static int calculateCalories({
+    required double proteinGrams,
+    required double carbohydrateGrams,
+    required double fatGrams,
+  }) {
+    return ((proteinGrams * 4) + (carbohydrateGrams * 4) + (fatGrams * 9)).round();
+  }
+
   double get averageRating {
     if (reviews.isEmpty) return 0;
     final total = reviews.fold<double>(0, (sum, review) => sum + review.rating);
