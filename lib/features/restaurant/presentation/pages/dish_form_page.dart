@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/dish.dart';
+import 'package:leafeat_mobile/features/establishments/data/establishments_repository.dart';
+import 'package:leafeat_mobile/app/session/app_session.dart';
+import 'package:leafeat_mobile/core/network/api_exception.dart';
 
 class DishFormPage extends StatefulWidget {
   const DishFormPage({this.dish, super.key});
@@ -21,6 +24,7 @@ class _DishFormPageState extends State<DishFormPage> {
   late final TextEditingController _fiber;
   late bool _isVegan;
   late bool _isLactoseFree;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -67,10 +71,9 @@ class _DishFormPageState extends State<DishFormPage> {
     if (mounted) setState(() {});
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop(
-      Dish(
+    final localDish = Dish(
         id: widget.dish?.id ?? 'dish-${DateTime.now().millisecondsSinceEpoch}',
         name: _name.text.trim(),
         description: _description.text.trim(),
@@ -83,8 +86,41 @@ class _DishFormPageState extends State<DishFormPage> {
         isVegan: _isVegan,
         isLactoseFree: _isLactoseFree,
         reviews: widget.dish?.reviews ?? const [],
-      ),
-    );
+      );
+    if (widget.dish != null) {
+      Navigator.of(context).pop(localDish);
+      return;
+    }
+
+    final session = AppSessionScope.read(context);
+    final establishmentId = session.user?.establishmentId;
+    if (session.token == null || establishmentId == null) {
+      Navigator.of(context).pop(localDish);
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      final dish = await EstablishmentsRepository(session.apiClient, token: session.token).createDish(
+        establishmentId,
+        {
+          'name': _name.text.trim(),
+          'description': _description.text.trim(),
+          'price': _number(_price),
+          'proteinGrams': _number(_protein),
+          'carbohydrateGrams': _number(_carbohydrate),
+          'fatGrams': _number(_fat),
+          'fiberGrams': _number(_fiber),
+          'isVegan': _isVegan,
+          'isLactoseFree': _isLactoseFree,
+          'hasNutritionInformation': true,
+        },
+      );
+      if (mounted) Navigator.of(context).pop(dish);
+    } on ApiException catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   String? _required(String? value) => value == null || value.trim().isEmpty ? 'Campo obrigatório.' : null;
@@ -132,7 +168,7 @@ class _DishFormPageState extends State<DishFormPage> {
             SwitchListTile(title: const Text('Prato vegano'), value: _isVegan, onChanged: (value) => setState(() => _isVegan = value)),
             SwitchListTile(title: const Text('Sem lactose'), value: _isLactoseFree, onChanged: (value) => setState(() => _isLactoseFree = value)),
             const SizedBox(height: 18),
-            FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: Text(editing ? 'Salvar alterações' : 'Cadastrar prato')),
+            FilledButton.icon(onPressed: _saving ? null : _save, icon: const Icon(Icons.save), label: Text(_saving ? 'Salvando...' : (editing ? 'Salvar alterações' : 'Cadastrar prato'))),
           ],
         ),
       ),

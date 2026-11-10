@@ -119,14 +119,15 @@ class _CustomerProfile extends StatelessWidget {
   const _CustomerProfile();
   @override
   Widget build(BuildContext context) {
+    final user = AppSessionScope.watch(context).user;
     return ListView(
       padding: const EdgeInsets.all(24),
-      children: const [
-        _ProfileHeader(icon: Icons.person, title: 'Cliente LeafEat', subtitle: 'cliente@leafeat.com'),
-        SizedBox(height: 24),
-        _AccountOptions(locked: false),
-        SizedBox(height: 28),
-        _ModeSwitcher(),
+      children: [
+        _ProfileHeader(icon: Icons.person, title: user?.name ?? 'Cliente LeafEat', subtitle: user?.email ?? 'Modo de demonstração'),
+        const SizedBox(height: 24),
+        const _AccountOptions(locked: false),
+        const SizedBox(height: 28),
+        const _ModeSwitcher(),
       ],
     );
   }
@@ -136,10 +137,11 @@ class _RestaurantProfile extends StatelessWidget {
   const _RestaurantProfile();
   @override
   Widget build(BuildContext context) {
+    final user = AppSessionScope.watch(context).user;
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        const _ProfileHeader(icon: Icons.store, title: 'Sabor Natural', subtitle: 'Refeições saudáveis • Aracati, CE'),
+        _ProfileHeader(icon: Icons.store, title: user?.name ?? 'Sabor Natural', subtitle: user?.email ?? 'Modo de demonstração'),
         const SizedBox(height: 20),
         const Text('Pratos equilibrados preparados com ingredientes frescos e informações nutricionais por porção.'),
         const SizedBox(height: 22),
@@ -227,7 +229,7 @@ class _ModeSwitcher extends StatelessWidget {
       const SizedBox(height: 12),
       Text('Visualização de demonstração', style: Theme.of(context).textTheme.titleMedium),
       const SizedBox(height: 6),
-      const Text('Troque o tipo de usuário enquanto não há backend.'),
+      const Text('Troque o tipo de usuário para testar as telas. A opção visitante encerra a sessão real.'),
       const SizedBox(height: 12),
       Wrap(
         spacing: 8,
@@ -237,7 +239,9 @@ class _ModeSwitcher extends StatelessWidget {
             avatar: const Icon(Icons.person_outline, size: 18),
             label: const Text('Visitante'),
             selected: session.mode == UserMode.guest,
-            onSelected: (_) => session.switchMode(UserMode.guest),
+            onSelected: (_) {
+              session.logout();
+            },
           ),
           ChoiceChip(
             avatar: const Icon(Icons.person, size: 18),

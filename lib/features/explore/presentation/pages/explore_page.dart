@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
 import 'package:leafeat_mobile/features/establishments/data/mock_establishments.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
+import 'package:leafeat_mobile/features/establishments/data/establishments_repository.dart';
+import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/features/explore/presentation/pages/establishment_detail_page.dart';
 import 'package:leafeat_mobile/features/explore/presentation/widgets/badge_chip.dart';
 
@@ -21,6 +23,41 @@ class _ExplorePageState extends State<ExplorePage> {
   bool _metricMenu = false;
   double _maxCalories = 800;
   _SortOption _sort = _SortOption.distance;
+  List<Establishment> _establishments = mockEstablishments;
+  bool _loading = true;
+  bool _loaded = false;
+  String? _loadError;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_loaded) return;
+    _loaded = true;
+    _loadEstablishments();
+  }
+
+  Future<void> _loadEstablishments() async {
+    if (mounted) setState(() { _loading = true; _loadError = null; });
+    final session = AppSessionScope.maybeRead(context);
+    if (session == null) {
+      if (mounted) setState(() => _loading = false);
+      return;
+    }
+    try {
+      final repository = EstablishmentsRepository(session.apiClient);
+      final items = await repository.list();
+      if (mounted) setState(() => _establishments = items);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _establishments = mockEstablishments;
+          _loadError = 'API indisponível. Exibindo dados demonstrativos.';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -30,7 +67,7 @@ class _ExplorePageState extends State<ExplorePage> {
 
   List<Establishment> get _filtered {
     final search = _query.trim().toLowerCase();
-    final result = mockEstablishments.where((establishment) {
+    final result = _establishments.where((establishment) {
       final matchesSearch = establishment.name.toLowerCase().contains(search) || establishment.category.toLowerCase().contains(search) || establishment.dishes.any((dish) => dish.name.toLowerCase().contains(search));
       final matchesVegan = !_vegan || establishment.dishes.any((dish) => dish.isVegan);
       final matchesLactose = !_lactoseFree || establishment.dishes.any((dish) => dish.isLactoseFree);
@@ -98,6 +135,20 @@ class _ExplorePageState extends State<ExplorePage> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            if (_loading) const LinearProgressIndicator(),
+            if (_loadError != null)
+              Card(
+                color: Theme.of(context).colorScheme.errorContainer,
+                child: ListTile(
+                  leading: const Icon(Icons.cloud_off_outlined),
+                  title: Text(_loadError!),
+                  trailing: IconButton(
+                    tooltip: 'Tentar novamente',
+                    onPressed: _loadEstablishments,
+                    icon: const Icon(Icons.refresh),
+                  ),
+                ),
+              ),
             const Text('O que você procura?', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             const Text('Consulte restaurantes e pratos mesmo sem criar uma conta.'),

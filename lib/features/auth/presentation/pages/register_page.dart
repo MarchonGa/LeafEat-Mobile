@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
+import 'package:leafeat_mobile/core/network/api_exception.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -14,6 +15,15 @@ class _RegisterPageState extends State<RegisterPage> {
   final _securityKey = GlobalKey<FormState>();
   final _password = TextEditingController();
   final _confirmation = TextEditingController();
+  final _name = TextEditingController();
+  final _email = TextEditingController();
+  final _cnpj = TextEditingController();
+  final _zipCode = TextEditingController();
+  final _addressNumber = TextEditingController();
+  final _neighborhood = TextEditingController();
+  final _category = TextEditingController();
+  final _description = TextEditingController();
+  final _otherRestrictions = TextEditingController();
   UserMode _accountType = UserMode.customer;
   int _step = 0;
   bool _hidePassword = true;
@@ -21,6 +31,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _lactoseIntolerant = false;
   bool _vegan = false;
   final Set<String> _allergies = {};
+  bool _submitting = false;
 
   static const _commonAllergies = ['Camarão', 'Amendoim', 'Castanhas', 'Glúten', 'Leite', 'Ovo'];
 
@@ -28,6 +39,15 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _password.dispose();
     _confirmation.dispose();
+    _name.dispose();
+    _email.dispose();
+    _cnpj.dispose();
+    _zipCode.dispose();
+    _addressNumber.dispose();
+    _neighborhood.dispose();
+    _category.dispose();
+    _description.dispose();
+    _otherRestrictions.dispose();
     super.dispose();
   }
 
@@ -36,7 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return keys[_step].currentState?.validate() ?? false;
   }
 
-  void _continue() {
+  Future<void> _continue() async {
     if (!_validateStep()) return;
     if (_step < 2) {
       setState(() => _step++);
@@ -46,12 +66,52 @@ class _RegisterPageState extends State<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Aceite os termos para continuar.')));
       return;
     }
-    AppSessionScope.read(context).switchMode(_accountType);
-    Navigator.of(context).pop();
+    setState(() => _submitting = true);
+    final session = AppSessionScope.read(context);
+    try {
+      final result = _accountType == UserMode.restaurant
+          ? await session.authRepository.registerRestaurant({
+              'businessName': _name.text.trim(),
+              'email': _email.text.trim(),
+              'cnpj': _cnpj.text,
+              'password': _password.text,
+              'confirmPassword': _confirmation.text,
+              'zipCode': _zipCode.text,
+              'addressNumber': _addressNumber.text.trim(),
+              'neighborhood': _neighborhood.text.trim(),
+              'category': _category.text.trim(),
+              'description': _description.text.trim(),
+            })
+          : await session.authRepository.registerCustomer({
+              'name': _name.text.trim(),
+              'email': _email.text.trim(),
+              'password': _password.text,
+              'confirmPassword': _confirmation.text,
+              'dietaryRestrictions': _customerRestrictions,
+            });
+      await session.authenticate(result);
+      if (mounted) Navigator.of(context).pop();
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  List<String> get _customerRestrictions {
+    final restrictions = <String>{..._allergies};
+    if (_lactoseIntolerant) restrictions.add('Intolerância à lactose');
+    if (_vegan) restrictions.add('Alimentação vegana');
+    restrictions.addAll(
+      _otherRestrictions.text.split(',').map((item) => item.trim()).where((item) => item.isNotEmpty),
+    );
+    return restrictions.toList();
   }
 
   String? _required(String? value) => value == null || value.trim().isEmpty ? 'Campo obrigatório.' : null;
-  String? _email(String? value) => value == null || !RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value.trim()) ? 'Informe um e-mail válido.' : null;
+  String? _emailRule(String? value) => value == null || !RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value.trim()) ? 'Informe um e-mail válido.' : null;
   String? _passwordRule(String? value) {
     if (value == null || value.length < 8) return 'Use pelo menos 8 caracteres.';
     if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Inclua uma letra maiúscula.';
@@ -76,7 +136,7 @@ class _RegisterPageState extends State<RegisterPage> {
         controlsBuilder: (context, details) => Padding(
           padding: const EdgeInsets.only(top: 20),
           child: Row(children: [
-            Expanded(child: FilledButton(onPressed: details.onStepContinue, child: Text(_step == 2 ? 'Criar conta' : 'Continuar'))),
+            Expanded(child: FilledButton(onPressed: _submitting ? null : details.onStepContinue, child: Text(_submitting ? 'Criando...' : (_step == 2 ? 'Criar conta' : 'Continuar')))),
             if (_step > 0) ...[const SizedBox(width: 10), Expanded(child: OutlinedButton(onPressed: details.onStepCancel, child: const Text('Voltar')))],
           ]),
         ),
@@ -84,10 +144,10 @@ class _RegisterPageState extends State<RegisterPage> {
           Step(title: const Text('Dados básicos'), isActive: _step >= 0, state: _step > 0 ? StepState.complete : StepState.indexed, content: Form(key: _basicKey, child: Column(children: [
             SegmentedButton<UserMode>(segments: const [ButtonSegment(value: UserMode.customer, label: Text('Cliente'), icon: Icon(Icons.person)), ButtonSegment(value: UserMode.restaurant, label: Text('Restaurante'), icon: Icon(Icons.store))], selected: {_accountType}, onSelectionChanged: (selection) => setState(() => _accountType = selection.first)),
             const SizedBox(height: 16),
-            _field(restaurant ? 'Nome fantasia' : 'Nome completo', validator: _required),
+            _field(restaurant ? 'Nome fantasia' : 'Nome completo', controller: _name, validator: _required),
             if (restaurant) _field('Razão social', validator: _required),
-            if (restaurant) _field('CNPJ', hint: '00.000.000/0000-00', keyboard: TextInputType.number, validator: (value) => value == null || value.replaceAll(RegExp(r'\D'), '').length != 14 ? 'Informe os 14 números do CNPJ.' : null),
-            _field('E-mail', keyboard: TextInputType.emailAddress, validator: _email),
+            if (restaurant) _field('CNPJ', controller: _cnpj, hint: '00.000.000/0000-00', keyboard: TextInputType.number, validator: (value) => value == null || value.replaceAll(RegExp(r'\D'), '').length != 14 ? 'Informe os 14 números do CNPJ.' : null),
+            _field('E-mail', controller: _email, keyboard: TextInputType.emailAddress, validator: _emailRule),
             _field('Telefone', hint: '(00) 00000-0000', keyboard: TextInputType.phone, validator: _required),
             if (!restaurant) _field('Data de nascimento', hint: 'dd/mm/aaaa', keyboard: TextInputType.datetime, validator: _required),
           ]))),
@@ -98,7 +158,7 @@ class _RegisterPageState extends State<RegisterPage> {
             const Align(alignment: Alignment.centerLeft, child: Text('A senha deve ter 8 caracteres, maiúscula, minúscula, número e caractere especial.', style: TextStyle(fontSize: 12))),
             const SizedBox(height: 12),
             CheckboxListTile(contentPadding: EdgeInsets.zero, controlAffinity: ListTileControlAffinity.leading, title: const Text('Li e aceito os termos de uso e a política de privacidade'), value: _acceptedTerms, onChanged: (value) => setState(() => _acceptedTerms = value!)),
-            const Card(child: ListTile(leading: Icon(Icons.info_outline), title: Text('Cadastro demonstrativo'), subtitle: Text('Os dados permanecem apenas em memória e serão descartados ao fechar o aplicativo.'))),
+            const Card(child: ListTile(leading: Icon(Icons.info_outline), title: Text('Cadastro conectado'), subtitle: Text('A conta será armazenada no banco local do LeafEat.'))),
           ]))),
         ],
       ),
@@ -115,23 +175,25 @@ class _RegisterPageState extends State<RegisterPage> {
       const SizedBox(height: 8),
       Wrap(spacing: 8, runSpacing: 8, children: _commonAllergies.map((allergy) => FilterChip(label: Text(allergy), selected: _allergies.contains(allergy), onSelected: (selected) => setState(() { if (selected) { _allergies.add(allergy); } else { _allergies.remove(allergy); } }))).toList()),
       const SizedBox(height: 14),
-      _field('Outras alergias ou restrições', hint: 'Ex.: peixe, soja, frutos do mar', validator: (_) => null, maxLines: 2),
+      _field('Outras alergias ou restrições', controller: _otherRestrictions, hint: 'Ex.: peixe, soja, frutos do mar', validator: (_) => null, maxLines: 2),
     ]);
   }
 
   Widget _restaurantAddress() {
     return Column(children: [
-      _field('CEP', hint: '00000-000', keyboard: TextInputType.number, validator: (value) => value == null || value.replaceAll(RegExp(r'\D'), '').length != 8 ? 'Informe os 8 números do CEP.' : null),
+      _field('CEP', controller: _zipCode, hint: '00000-000', keyboard: TextInputType.number, validator: (value) => value == null || value.replaceAll(RegExp(r'\D'), '').length != 8 ? 'Informe os 8 números do CEP.' : null),
       _field('Rua ou avenida', validator: _required),
-      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(flex: 2, child: _field('Número', keyboard: TextInputType.number, validator: _required)), const SizedBox(width: 10), Expanded(flex: 3, child: _field('Complemento', validator: (_) => null))]),
-      _field('Bairro', validator: _required),
+      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(flex: 2, child: _field('Número', controller: _addressNumber, keyboard: TextInputType.number, validator: _required)), const SizedBox(width: 10), Expanded(flex: 3, child: _field('Complemento', validator: (_) => null))]),
+      _field('Bairro', controller: _neighborhood, validator: _required),
       _field('Cidade', validator: _required),
       _field('Estado', hint: 'CE', validator: (value) => value == null || value.trim().length != 2 ? 'Use a sigla com 2 letras.' : null),
+      _field('Categoria', controller: _category, hint: 'Ex.: saudável, regional', validator: _required),
+      _field('Descrição do estabelecimento', controller: _description, validator: _required, maxLines: 3),
     ]);
   }
 
-  Widget _field(String label, {String? hint, required FormFieldValidator<String> validator, TextInputType keyboard = TextInputType.text, int maxLines = 1}) {
-    return Padding(padding: const EdgeInsets.only(bottom: 14), child: TextFormField(keyboardType: keyboard, maxLines: maxLines, decoration: InputDecoration(labelText: label, hintText: hint, border: const OutlineInputBorder()), validator: validator));
+  Widget _field(String label, {TextEditingController? controller, String? hint, required FormFieldValidator<String> validator, TextInputType keyboard = TextInputType.text, int maxLines = 1}) {
+    return Padding(padding: const EdgeInsets.only(bottom: 14), child: TextFormField(controller: controller, keyboardType: keyboard, maxLines: maxLines, decoration: InputDecoration(labelText: label, hintText: hint, border: const OutlineInputBorder()), validator: validator));
   }
 
   Widget _passwordField({required TextEditingController controller, required String label, required FormFieldValidator<String> validator}) {

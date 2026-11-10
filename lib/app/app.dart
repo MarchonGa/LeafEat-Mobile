@@ -14,6 +14,12 @@ class _LeafEatAppState extends State<LeafEatApp> {
   final _session = AppSession();
 
   @override
+  void initState() {
+    super.initState();
+    _session.restore();
+  }
+
+  @override
   void dispose() {
     _session.dispose();
     super.dispose();

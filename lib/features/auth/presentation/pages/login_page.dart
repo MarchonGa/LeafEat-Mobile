@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
+import 'package:leafeat_mobile/core/network/api_exception.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,13 +11,44 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
   UserMode _accountType = UserMode.customer;
   bool _hidePassword = true;
+  bool _submitting = false;
 
-  void _submit() {
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    AppSessionScope.read(context).switchMode(_accountType);
-    Navigator.of(context).pop();
+    setState(() => _submitting = true);
+    final session = AppSessionScope.read(context);
+    try {
+      final result = await session.authRepository.login(
+        email: _email.text,
+        password: _password.text,
+      );
+      if (result.user.role != _accountType) {
+        throw ApiException(
+          _accountType == UserMode.restaurant
+              ? 'Esta conta não pertence a um restaurante.'
+              : 'Esta conta pertence a um restaurante.',
+        );
+      }
+      await session.authenticate(result);
+      if (mounted) Navigator.of(context).pop();
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -44,6 +76,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(height: 20),
             TextFormField(
+              controller: _email,
               keyboardType: TextInputType.emailAddress,
               autofillHints: const [AutofillHints.email],
               decoration: const InputDecoration(labelText: 'E-mail', prefixIcon: Icon(Icons.email_outlined), border: OutlineInputBorder()),
@@ -51,6 +84,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(height: 14),
             TextFormField(
+              controller: _password,
               obscureText: _hidePassword,
               autofillHints: const [AutofillHints.password],
               decoration: InputDecoration(
@@ -69,9 +103,15 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 8),
-            FilledButton.icon(onPressed: _submit, icon: const Icon(Icons.login), label: const Text('Entrar')),
+            FilledButton.icon(
+              onPressed: _submitting ? null : _submit,
+              icon: _submitting
+                  ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.login),
+              label: Text(_submitting ? 'Entrando...' : 'Entrar'),
+            ),
             const SizedBox(height: 12),
-            const Text('Acesso demonstrativo: os dados não são enviados ou armazenados.', textAlign: TextAlign.center),
+            const Text('A sessão será conectada à API local do LeafEat.', textAlign: TextAlign.center),
           ],
         ),
       ),

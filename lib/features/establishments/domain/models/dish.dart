@@ -16,6 +16,20 @@ class Dish {
     this.reviews = const [],
   });
 
+  factory Dish.fromJson(Map<String, dynamic> json) => Dish(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        description: json['description'] as String,
+        price: (json['price'] as num).toDouble(),
+        calories: (json['calories'] as num).toInt(),
+        proteinGrams: (json['proteinGrams'] as num).toDouble(),
+        carbohydrateGrams: (json['carbohydrateGrams'] as num).toDouble(),
+        fatGrams: (json['fatGrams'] as num).toDouble(),
+        fiberGrams: (json['fiberGrams'] as num).toDouble(),
+        isVegan: json['isVegan'] as bool,
+        isLactoseFree: json['isLactoseFree'] as bool,
+      );
+
   final String id;
   final String name;
   final String description;

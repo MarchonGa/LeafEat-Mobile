@@ -3,6 +3,8 @@ import 'package:leafeat_mobile/core/theme/app_colors.dart';
 import 'package:leafeat_mobile/features/establishments/data/mock_establishments.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/dish.dart';
 import 'package:leafeat_mobile/features/restaurant/presentation/pages/dish_form_page.dart';
+import 'package:leafeat_mobile/features/establishments/data/establishments_repository.dart';
+import 'package:leafeat_mobile/app/session/app_session.dart';
 
 class RestaurantMenuPage extends StatefulWidget {
   const RestaurantMenuPage({super.key});
@@ -12,11 +14,42 @@ class RestaurantMenuPage extends StatefulWidget {
 
 class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
   late final List<Dish> _dishes;
+  bool _loaded = false;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
     _dishes = [...mockEstablishments.first.dishes];
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_loaded) return;
+    _loaded = true;
+    _loadDishes();
+  }
+
+  Future<void> _loadDishes() async {
+    final session = AppSessionScope.read(context);
+    final establishmentId = session.user?.establishmentId;
+    if (establishmentId == null) {
+      setState(() => _loading = false);
+      return;
+    }
+    try {
+      final establishment = await EstablishmentsRepository(session.apiClient).detail(establishmentId);
+      if (mounted) setState(() { _dishes..clear()..addAll(establishment.dishes); });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Não foi possível atualizar o cardápio. Exibindo dados demonstrativos.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   Future<void> _openForm({Dish? dish, int? index}) async {
@@ -29,14 +62,16 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
         _dishes[index] = result;
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(index == null ? 'Prato cadastrado em memória.' : 'Prato atualizado em memória.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(index == null ? 'Prato cadastrado.' : 'Edição mantida nesta sessão.')));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Meu cardápio'), backgroundColor: AppColors.primary, foregroundColor: AppColors.onPrimary),
-      body: ListView.builder(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _dishes.length,
         itemBuilder: (context, index) {
