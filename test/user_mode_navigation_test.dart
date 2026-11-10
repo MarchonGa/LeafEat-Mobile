@@ -13,7 +13,8 @@ void main() {
     expect(find.text('Visitante'), findsOneWidget);
 
     final customerChip = find.widgetWithText(ChoiceChip, 'Cliente');
-    await tester.scrollUntilVisible(customerChip, 300);
+    await tester.ensureVisible(customerChip);
+    await tester.pumpAndSettle();
     await tester.tap(customerChip);
     await tester.pumpAndSettle();
 
@@ -24,7 +25,8 @@ void main() {
       ChoiceChip,
       'Restaurante',
     );
-    await tester.scrollUntilVisible(restaurantChip, 300);
+    await tester.ensureVisible(restaurantChip);
+    await tester.pumpAndSettle();
     await tester.tap(restaurantChip);
     await tester.pumpAndSettle();
 
