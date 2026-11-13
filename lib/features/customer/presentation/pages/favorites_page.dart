@@ -52,14 +52,63 @@ class _FavoritesPageState extends State<FavoritesPage> {
         session.token!,
       ).removeFavorite(establishment.id);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${establishment.name} removido dos favoritos.')),
+      final originalIndex = previous.indexWhere(
+        (item) => item.id == establishment.id,
       );
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 6),
+            content: Text('${establishment.name} removido dos favoritos.'),
+            action: SnackBarAction(
+              label: 'Desfazer',
+              onPressed: () => _undoRemoval(
+                establishment,
+                originalIndex,
+              ),
+            ),
+          ),
+        );
     } catch (error) {
       if (!mounted) return;
       setState(() => _favorites = Future.value(previous));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Não foi possível remover: $error')),
+      );
+    }
+  }
+
+  Future<void> _undoRemoval(
+    Establishment establishment,
+    int originalIndex,
+  ) async {
+    final session = AppSessionScope.read(context);
+    final current = await _favorites ?? <Establishment>[];
+    if (!mounted || current.any((item) => item.id == establishment.id)) return;
+
+    final restored = [...current];
+    var insertionIndex = originalIndex;
+    if (insertionIndex < 0 || insertionIndex > restored.length) {
+      insertionIndex = restored.length;
+    }
+    restored.insert(insertionIndex, establishment);
+    setState(() => _favorites = Future.value(restored));
+
+    try {
+      await CustomerRepository(
+        session.apiClient,
+        session.token!,
+      ).addFavorite(establishment.id);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _favorites = Future.value(
+          restored.where((item) => item.id != establishment.id).toList(),
+        );
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Não foi possível desfazer: $error')),
       );
     }
   }
