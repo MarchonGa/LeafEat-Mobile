@@ -100,6 +100,14 @@ class _FavoritesPageState extends State<FavoritesPage> {
         session.apiClient,
         session.token!,
       ).addFavorite(establishment.id);
+      if (!mounted) return;
+      final refreshed = _load();
+      setState(() => _favorites = refreshed);
+      await refreshed;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${establishment.name} voltou aos favoritos.')),
+      );
     } catch (error) {
       if (!mounted) return;
       setState(() {
