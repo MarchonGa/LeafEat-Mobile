@@ -27,12 +27,18 @@ class _RegisterPageState extends State<RegisterPage> {
   final _category = TextEditingController();
   final _description = TextEditingController();
   final _otherRestrictions = TextEditingController();
+  final _caloriesGoal = TextEditingController();
+  final _proteinGoal = TextEditingController();
+  final _carbohydrateGoal = TextEditingController();
+  final _fatGoal = TextEditingController();
+  final _fiberGoal = TextEditingController();
   UserMode _accountType = UserMode.customer;
   int _step = 0;
   bool _hidePassword = true;
   bool _acceptedTerms = false;
   bool _lactoseIntolerant = false;
   bool _vegan = false;
+  bool _defineNutritionGoals = false;
   final Set<String> _allergies = {};
   bool _submitting = false;
 
@@ -52,6 +58,11 @@ class _RegisterPageState extends State<RegisterPage> {
     _category.dispose();
     _description.dispose();
     _otherRestrictions.dispose();
+    _caloriesGoal.dispose();
+    _proteinGoal.dispose();
+    _carbohydrateGoal.dispose();
+    _fatGoal.dispose();
+    _fiberGoal.dispose();
     super.dispose();
   }
 
@@ -92,6 +103,7 @@ class _RegisterPageState extends State<RegisterPage> {
               'password': _password.text,
               'confirmPassword': _confirmation.text,
               'dietaryRestrictions': _customerRestrictions,
+              'nutritionGoals': _nutritionGoals,
             });
       await session.authenticate(result);
       if (mounted) Navigator.of(context).pop();
@@ -114,7 +126,31 @@ class _RegisterPageState extends State<RegisterPage> {
     return restrictions.toList();
   }
 
+  Map<String, dynamic>? get _nutritionGoals {
+    if (!_defineNutritionGoals) return null;
+    double? valueOf(TextEditingController controller) => double.tryParse(
+          controller.text.trim().replaceAll(',', '.'),
+        );
+    return {
+      'calories': valueOf(_caloriesGoal)?.round(),
+      'proteinGrams': valueOf(_proteinGoal),
+      'carbohydrateGrams': valueOf(_carbohydrateGoal),
+      'fatGrams': valueOf(_fatGoal),
+      'fiberGrams': valueOf(_fiberGoal),
+    };
+  }
+
   String? _required(String? value) => value == null || value.trim().isEmpty ? 'Campo obrigatório.' : null;
+  String? _positiveGoal(String? value) {
+    if (!_defineNutritionGoals) return null;
+    final number = double.tryParse((value ?? '').trim().replaceAll(',', '.'));
+    return number == null || number <= 0 ? 'Informe um valor maior que zero.' : null;
+  }
+
+  String? _optionalPositiveGoal(String? value) {
+    if (!_defineNutritionGoals || (value ?? '').trim().isEmpty) return null;
+    return _positiveGoal(value);
+  }
   String? _birthDateRule(String? value) {
     if (value == null || value.trim().isEmpty) return 'Campo obrigatório.';
     return _parseBirthDate(value) == null ? 'Informe uma data válida.' : null;
@@ -229,7 +265,39 @@ class _RegisterPageState extends State<RegisterPage> {
       Wrap(spacing: 8, runSpacing: 8, children: _commonAllergies.map((allergy) => FilterChip(label: Text(allergy), selected: _allergies.contains(allergy), onSelected: (selected) => setState(() { if (selected) { _allergies.add(allergy); } else { _allergies.remove(allergy); } }))).toList()),
       const SizedBox(height: 14),
       _field('Outras alergias ou restrições', controller: _otherRestrictions, hint: 'Ex.: peixe, soja, frutos do mar', validator: (_) => null, maxLines: 2),
+      const Divider(height: 32),
+      Text('Metas nutricionais', style: Theme.of(context).textTheme.titleMedium),
+      const SizedBox(height: 6),
+      const Text('As metas são opcionais e podem ser alteradas depois na tela de macros.'),
+      SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        title: const Text('Quero definir minhas metas agora'),
+        subtitle: Text(_defineNutritionGoals
+            ? 'Preencha os valores abaixo.'
+            : 'Desativado: prefiro não informar agora.'),
+        value: _defineNutritionGoals,
+        onChanged: (value) => setState(() => _defineNutritionGoals = value),
+      ),
+      if (_defineNutritionGoals) ...[
+        _goalField('Calorias diárias', _caloriesGoal, 'kcal', _positiveGoal),
+        _goalField('Proteínas diárias', _proteinGoal, 'g', _positiveGoal),
+        _goalField('Carboidratos diários', _carbohydrateGoal, 'g', _positiveGoal),
+        _goalField('Gorduras diárias', _fatGoal, 'g', _positiveGoal),
+        _goalField('Fibras diárias (opcional)', _fiberGoal, 'g', _optionalPositiveGoal),
+      ],
     ]);
+  }
+
+  Widget _goalField(String label, TextEditingController controller,
+      String suffix, FormFieldValidator<String> validator) {
+    return _field(
+      label,
+      controller: controller,
+      keyboard: const TextInputType.numberWithOptions(decimal: true),
+      validator: validator,
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]'))],
+      suffixText: suffix,
+    );
   }
 
   Widget _restaurantAddress() {
@@ -245,8 +313,8 @@ class _RegisterPageState extends State<RegisterPage> {
     ]);
   }
 
-  Widget _field(String label, {TextEditingController? controller, String? hint, required FormFieldValidator<String> validator, TextInputType keyboard = TextInputType.text, int maxLines = 1, List<TextInputFormatter>? inputFormatters, Widget? suffixIcon}) {
-    return Padding(padding: const EdgeInsets.only(bottom: 14), child: TextFormField(controller: controller, keyboardType: keyboard, maxLines: maxLines, inputFormatters: inputFormatters, decoration: InputDecoration(labelText: label, hintText: hint, border: const OutlineInputBorder(), suffixIcon: suffixIcon), validator: validator));
+  Widget _field(String label, {TextEditingController? controller, String? hint, required FormFieldValidator<String> validator, TextInputType keyboard = TextInputType.text, int maxLines = 1, List<TextInputFormatter>? inputFormatters, Widget? suffixIcon, String? suffixText}) {
+    return Padding(padding: const EdgeInsets.only(bottom: 14), child: TextFormField(controller: controller, keyboardType: keyboard, maxLines: maxLines, inputFormatters: inputFormatters, decoration: InputDecoration(labelText: label, hintText: hint, border: const OutlineInputBorder(), suffixIcon: suffixIcon, suffixText: suffixText), validator: validator));
   }
 
   Widget _passwordField({required TextEditingController controller, required String label, required FormFieldValidator<String> validator}) {

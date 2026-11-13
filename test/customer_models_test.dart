@@ -51,5 +51,6 @@ void main() {
     expect(day.proteins, 40);
     expect(day.carbohydrates, 95);
     expect(day.fats, 23);
+    expect(day.fibers, 11);
   });
 }

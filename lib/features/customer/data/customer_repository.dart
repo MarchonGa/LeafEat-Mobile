@@ -1,6 +1,7 @@
 import 'package:leafeat_mobile/core/network/api_client.dart';
 import 'package:leafeat_mobile/features/customer/data/customer_review.dart';
 import 'package:leafeat_mobile/features/customer/data/nutrition_entry.dart';
+import 'package:leafeat_mobile/features/customer/data/nutrition_goals.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
 
 class CustomerRepository {
@@ -43,4 +44,18 @@ class CustomerRepository {
 
   Future<void> removeNutrition(String id) =>
       _api.delete('/api/customer/nutrition/$id', token: _token);
+
+  Future<NutritionGoals> nutritionGoals() async {
+    final json = await _api.get('/api/customer/nutrition-goals', token: _token);
+    return NutritionGoals.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<NutritionGoals> updateNutritionGoals(NutritionGoals goals) async {
+    final json = await _api.put(
+      '/api/customer/nutrition-goals',
+      body: goals.toJson(),
+      token: _token,
+    );
+    return NutritionGoals.fromJson(json as Map<String, dynamic>);
+  }
 }

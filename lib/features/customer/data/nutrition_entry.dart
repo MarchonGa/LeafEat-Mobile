@@ -48,4 +48,5 @@ class NutritionDay {
   double get proteins => entries.fold(0, (sum, item) => sum + item.proteinGrams);
   double get carbohydrates => entries.fold(0, (sum, item) => sum + item.carbohydrateGrams);
   double get fats => entries.fold(0, (sum, item) => sum + item.fatGrams);
+  double get fibers => entries.fold(0, (sum, item) => sum + item.fiberGrams);
 }

@@ -33,6 +33,8 @@ void main() {
     expect(find.text('Intolerância à lactose'), findsOneWidget);
     expect(find.text('Camarão'), findsOneWidget);
     expect(find.text('Amendoim'), findsOneWidget);
+    expect(find.text('Metas nutricionais'), findsOneWidget);
+    expect(find.text('Quero definir minhas metas agora'), findsOneWidget);
   });
 
   testWidgets('birth date offers a calendar picker', (tester) async {

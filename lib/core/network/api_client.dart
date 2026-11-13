@@ -29,6 +29,15 @@ class ApiClient {
     return _decode(response);
   }
 
+  Future<dynamic> put(String path, {Object? body, String? token}) async {
+    final response = await _send(() => _httpClient.put(
+          Uri.parse('$baseUrl$path'),
+          headers: _headers(token: token),
+          body: jsonEncode(body),
+        ));
+    return _decode(response);
+  }
+
   Future<dynamic> delete(String path, {String? token}) async {
     final response = await _send(() => _httpClient.delete(
           Uri.parse('$baseUrl$path'),
