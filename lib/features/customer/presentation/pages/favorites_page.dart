@@ -13,19 +13,50 @@ class FavoritesPage extends StatefulWidget {
 }
 
 class _FavoritesPageState extends State<FavoritesPage> {
-  Future<List<Establishment>>? _favorites;
+  final List<Establishment> _favorites = [];
+  bool _initialized = false;
+  bool _loading = true;
+  String? _error;
+
+  CustomerRepository _repository() {
+    final session = AppSessionScope.read(context);
+    if (session.token == null) {
+      throw StateError('Faça login como cliente para acessar seus favoritos.');
+    }
+    return CustomerRepository(session.apiClient, session.token!);
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _favorites ??= _load();
+    if (_initialized) return;
+    _initialized = true;
+    _load();
   }
 
-  Future<List<Establishment>> _load() {
-    final session = AppSessionScope.read(context);
-    final token = session.token;
-    if (token == null) return Future.error('Faça login como cliente para acessar seus favoritos.');
-    return CustomerRepository(session.apiClient, token).favorites();
+  Future<void> _load() async {
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
+    try {
+      final favorites = await _repository().favorites();
+      if (!mounted) return;
+      setState(() {
+        _favorites
+          ..clear()
+          ..addAll(favorites);
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = error.toString();
+      });
+    }
   }
 
   Future<void> _remove(Establishment establishment) async {
@@ -38,23 +69,15 @@ class _FavoritesPageState extends State<FavoritesPage> {
       }
     }
 
-    final previous = await _favorites;
-    if (!mounted || previous == null) return;
-    setState(() {
-      _favorites = Future.value(
-        previous.where((item) => item.id != establishment.id).toList(),
-      );
-    });
+    final originalIndex = _favorites.indexWhere(
+      (item) => item.id == establishment.id,
+    );
+    if (originalIndex < 0) return;
+    setState(() => _favorites.removeAt(originalIndex));
 
     try {
-      await CustomerRepository(
-        session.apiClient,
-        session.token!,
-      ).removeFavorite(establishment.id);
+      await _repository().removeFavorite(establishment.id);
       if (!mounted) return;
-      final originalIndex = previous.indexWhere(
-        (item) => item.id == establishment.id,
-      );
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -63,16 +86,13 @@ class _FavoritesPageState extends State<FavoritesPage> {
             content: Text('${establishment.name} removido dos favoritos.'),
             action: SnackBarAction(
               label: 'Desfazer',
-              onPressed: () => _undoRemoval(
-                establishment,
-                originalIndex,
-              ),
+              onPressed: () => _undoRemoval(establishment, originalIndex),
             ),
           ),
         );
     } catch (error) {
       if (!mounted) return;
-      setState(() => _favorites = Future.value(previous));
+      _restoreAt(establishment, originalIndex);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Não foi possível remover: $error')),
       );
@@ -83,42 +103,47 @@ class _FavoritesPageState extends State<FavoritesPage> {
     Establishment establishment,
     int originalIndex,
   ) async {
-    final session = AppSessionScope.read(context);
-    final current = await _favorites ?? <Establishment>[];
-    if (!mounted || current.any((item) => item.id == establishment.id)) return;
-
-    final restored = [...current];
-    var insertionIndex = originalIndex;
-    if (insertionIndex < 0 || insertionIndex > restored.length) {
-      insertionIndex = restored.length;
-    }
-    restored.insert(insertionIndex, establishment);
-    setState(() => _favorites = Future.value(restored));
+    if (_favorites.any((item) => item.id == establishment.id)) return;
+    _restoreAt(establishment, originalIndex);
 
     try {
-      await CustomerRepository(
-        session.apiClient,
-        session.token!,
-      ).addFavorite(establishment.id);
-      if (!mounted) return;
-      final refreshed = _load();
-      setState(() => _favorites = refreshed);
-      await refreshed;
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${establishment.name} voltou aos favoritos.')),
-      );
+      await _repository().addFavorite(establishment.id);
     } catch (error) {
       if (!mounted) return;
-      setState(() {
-        _favorites = Future.value(
-          restored.where((item) => item.id != establishment.id).toList(),
-        );
-      });
+      setState(
+        () => _favorites.removeWhere((item) => item.id == establishment.id),
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Não foi possível desfazer: $error')),
       );
+      return;
     }
+
+    if (!mounted) return;
+    try {
+      final serverFavorites = await _repository().favorites();
+      if (mounted) {
+        setState(() {
+          _favorites
+            ..clear()
+            ..addAll(serverFavorites);
+        });
+      }
+    } catch (_) {
+      // A restauração local é mantida; a próxima atualização reconcilia a lista.
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${establishment.name} voltou aos favoritos.')),
+    );
+  }
+
+  void _restoreAt(Establishment establishment, int originalIndex) {
+    var insertionIndex = originalIndex;
+    if (insertionIndex < 0 || insertionIndex > _favorites.length) {
+      insertionIndex = _favorites.length;
+    }
+    setState(() => _favorites.insert(insertionIndex, establishment));
   }
 
   Future<_RemovalDecision?> _confirmRemoval(
@@ -172,33 +197,50 @@ class _FavoritesPageState extends State<FavoritesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Locais favoritos'), backgroundColor: AppColors.primary, foregroundColor: AppColors.onPrimary),
-      body: FutureBuilder<List<Establishment>>(
-        future: _favorites,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-          if (snapshot.hasError) return _Message(icon: Icons.cloud_off_outlined, text: snapshot.error.toString());
-          final favorites = snapshot.data ?? const [];
-          if (favorites.isEmpty) return const _Message(icon: Icons.favorite_border, text: 'Você ainda não salvou nenhum estabelecimento.');
-          return RefreshIndicator(
-            onRefresh: () async {
-              final refreshed = _load();
-              setState(() => _favorites = refreshed);
-              await refreshed;
-            },
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: favorites.length,
-              itemBuilder: (context, index) {
-                final establishment = favorites[index];
-                return Card(child: ListTile(
-                  leading: const Icon(Icons.favorite, color: Colors.red),
-                  title: Text(establishment.name),
-                  subtitle: Text(establishment.category),
-                  trailing: IconButton(tooltip: 'Remover dos favoritos', onPressed: () => _remove(establishment), icon: const Icon(Icons.delete_outline)),
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => EstablishmentDetailPage(establishment: establishment))),
-                ));
-              },
+      appBar: AppBar(
+        title: const Text('Locais favoritos'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return _Message(icon: Icons.cloud_off_outlined, text: _error!);
+    }
+    if (_favorites.isEmpty) {
+      return const _Message(
+        icon: Icons.favorite_border,
+        text: 'Você ainda não salvou nenhum estabelecimento.',
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _favorites.length,
+        itemBuilder: (context, index) {
+          final establishment = _favorites[index];
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.favorite, color: Colors.red),
+              title: Text(establishment.name),
+              subtitle: Text(establishment.category),
+              trailing: IconButton(
+                tooltip: 'Remover dos favoritos',
+                onPressed: () => _remove(establishment),
+                icon: const Icon(Icons.delete_outline),
+              ),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => EstablishmentDetailPage(
+                    establishment: establishment,
+                  ),
+                ),
+              ),
             ),
           );
         },
@@ -219,15 +261,22 @@ class _RemovalDecision {
 
 class _Message extends StatelessWidget {
   const _Message({required this.icon, required this.text});
+
   final IconData icon;
   final String text;
+
   @override
-  Widget build(BuildContext context) => Center(child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 56, color: AppColors.primary),
-          const SizedBox(height: 16),
-          Text(text, textAlign: TextAlign.center),
-        ]),
-      ));
+  Widget build(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 56, color: AppColors.primary),
+              const SizedBox(height: 16),
+              Text(text, textAlign: TextAlign.center),
+            ],
+          ),
+        ),
+      );
 }
