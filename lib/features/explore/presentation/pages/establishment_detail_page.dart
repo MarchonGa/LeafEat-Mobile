@@ -1,14 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
+import 'package:leafeat_mobile/features/customer/data/customer_repository.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/dish.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
 import 'package:leafeat_mobile/features/explore/presentation/pages/dish_detail_page.dart';
 import 'package:leafeat_mobile/features/explore/presentation/widgets/badge_chip.dart';
 
-class EstablishmentDetailPage extends StatelessWidget {
+class EstablishmentDetailPage extends StatefulWidget {
   const EstablishmentDetailPage({required this.establishment, super.key});
 
   final Establishment establishment;
+
+  @override
+  State<EstablishmentDetailPage> createState() => _EstablishmentDetailPageState();
+}
+
+class _EstablishmentDetailPageState extends State<EstablishmentDetailPage> {
+  bool? _favorite;
+  bool _changingFavorite = false;
+
+  Establishment get establishment => widget.establishment;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_favorite == null) _loadFavorite();
+  }
+
+  Future<void> _loadFavorite() async {
+    final session = AppSessionScope.read(context);
+    if (session.mode != UserMode.customer || session.token == null) {
+      if (mounted) setState(() => _favorite = false);
+      return;
+    }
+    try {
+      final items = await CustomerRepository(session.apiClient, session.token!).favorites();
+      if (mounted) setState(() => _favorite = items.any((item) => item.id == establishment.id));
+    } catch (_) {
+      if (mounted) setState(() => _favorite = false);
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    final session = AppSessionScope.read(context);
+    if (session.mode != UserMode.customer || session.token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Entre como cliente para salvar favoritos.')));
+      return;
+    }
+    setState(() => _changingFavorite = true);
+    try {
+      final repository = CustomerRepository(session.apiClient, session.token!);
+      if (_favorite == true) {
+        await repository.removeFavorite(establishment.id);
+      } else {
+        await repository.addFavorite(establishment.id);
+      }
+      if (mounted) setState(() => _favorite = !(_favorite ?? false));
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+    } finally {
+      if (mounted) setState(() => _changingFavorite = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +71,13 @@ class EstablishmentDetailPage extends StatelessWidget {
         title: Text(establishment.name),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
+        actions: [
+          IconButton(
+            tooltip: _favorite == true ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
+            onPressed: _changingFavorite ? null : _toggleFavorite,
+            icon: Icon(_favorite == true ? Icons.favorite : Icons.favorite_border),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),

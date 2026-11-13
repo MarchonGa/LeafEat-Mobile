@@ -17,11 +17,11 @@ class ReviewPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.qr_code_scanner, size: 96, color: AppColors.primary),
+              const Icon(Icons.rate_review_outlined, size: 96, color: AppColors.primary),
               const SizedBox(height: 24),
               const Text('Avalie sua experiência', textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              Text(isCustomer ? 'No produto final, o QR Code confirmará sua visita antes da avaliação.' : 'Entre como cliente para publicar avaliações validadas por visita.', textAlign: TextAlign.center),
+              Text(isCustomer ? 'Compartilhe sua opinião sobre o prato e o ambiente.' : 'Entre como cliente para publicar avaliações.', textAlign: TextAlign.center),
               const SizedBox(height: 28),
               FilledButton.icon(
                 onPressed: () {
@@ -32,7 +32,7 @@ class ReviewPage extends StatelessWidget {
                   Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ReviewFormPage()));
                 },
                 icon: Icon(isCustomer ? Icons.play_arrow : Icons.lock_outline),
-                label: Text(isCustomer ? 'Simular leitura do QR Code' : 'Recurso exclusivo para clientes'),
+                label: Text(isCustomer ? 'Escrever avaliação' : 'Recurso exclusivo para clientes'),
               ),
             ],
           ),
