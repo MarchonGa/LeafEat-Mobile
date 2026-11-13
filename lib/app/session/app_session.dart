@@ -16,6 +16,7 @@ class AppSession extends ChangeNotifier {
 
   static const _tokenKey = 'auth_token';
   static const _userKey = 'auth_user';
+  static const _confirmFavoriteRemovalKey = 'confirm_favorite_removal';
   SharedPreferencesAsync get _preferences => SharedPreferencesAsync();
 
   final ApiClient apiClient;
@@ -24,11 +25,13 @@ class AppSession extends ChangeNotifier {
   String? _token;
   AuthUser? _user;
   bool _restored = false;
+  bool _confirmFavoriteRemoval = true;
 
   UserMode get mode => _mode;
   String? get token => _token;
   AuthUser? get user => _user;
   bool get restored => _restored;
+  bool get confirmFavoriteRemoval => _confirmFavoriteRemoval;
 
   bool get isAuthenticated => _mode != UserMode.guest;
 
@@ -36,6 +39,8 @@ class AppSession extends ChangeNotifier {
     try {
       final token = await _preferences.getString(_tokenKey);
       final userJson = await _preferences.getString(_userKey);
+      _confirmFavoriteRemoval =
+          await _preferences.getBool(_confirmFavoriteRemovalKey) ?? true;
       if (token != null && userJson != null) {
         _token = token;
         _user = AuthUser.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
@@ -48,6 +53,13 @@ class AppSession extends ChangeNotifier {
       } catch (_) {}
     }
     _restored = true;
+    notifyListeners();
+  }
+
+  Future<void> setConfirmFavoriteRemoval(bool value) async {
+    if (_confirmFavoriteRemoval == value) return;
+    _confirmFavoriteRemoval = value;
+    await _preferences.setBool(_confirmFavoriteRemovalKey, value);
     notifyListeners();
   }
 

@@ -126,8 +126,40 @@ class _CustomerProfile extends StatelessWidget {
         _ProfileHeader(icon: Icons.person, title: user?.name ?? 'Cliente LeafEat', subtitle: user?.email ?? 'Modo de demonstração'),
         const SizedBox(height: 24),
         const _AccountOptions(locked: false),
+        const SizedBox(height: 24),
+        const _AppPreferences(),
         const SizedBox(height: 28),
         const _ModeSwitcher(),
+      ],
+    );
+  }
+}
+
+class _AppPreferences extends StatelessWidget {
+  const _AppPreferences();
+
+  @override
+  Widget build(BuildContext context) {
+    final session = AppSessionScope.watch(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Preferências do aplicativo',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 10),
+        Card(
+          child: SwitchListTile(
+            secondary: const Icon(Icons.delete_outline),
+            title: const Text('Confirmar remoção de favoritos'),
+            subtitle: const Text(
+              'Perguntar antes de retirar um local da sua lista.',
+            ),
+            value: session.confirmFavoriteRemoval,
+            onChanged: session.setConfirmFavoriteRemoval,
+          ),
+        ),
       ],
     );
   }

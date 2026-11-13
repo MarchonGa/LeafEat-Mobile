@@ -24,7 +24,8 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(0), 'Cliente Teste');
     await tester.enterText(find.byType(TextFormField).at(1), 'cliente@teste.com');
     await tester.enterText(find.byType(TextFormField).at(2), '88999999999');
-    await tester.enterText(find.byType(TextFormField).at(3), '01/01/2000');
+    await tester.enterText(find.byType(TextFormField).at(3), '01012000');
+    expect(find.text('01/01/2000'), findsOneWidget);
     await tester.tap(
       find.widgetWithText(FilledButton, 'Continuar').first,
     );
@@ -32,5 +33,11 @@ void main() {
     expect(find.text('Intolerância à lactose'), findsOneWidget);
     expect(find.text('Camarão'), findsOneWidget);
     expect(find.text('Amendoim'), findsOneWidget);
+  });
+
+  testWidgets('birth date offers a calendar picker', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+
+    expect(find.byTooltip('Selecionar no calendário'), findsOneWidget);
   });
 }

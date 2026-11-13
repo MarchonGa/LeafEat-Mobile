@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:leafeat_mobile/app/session/app_session.dart';
+import 'package:leafeat_mobile/core/input/date_input_formatter.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
 import 'package:leafeat_mobile/core/network/api_exception.dart';
 
@@ -17,6 +19,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _confirmation = TextEditingController();
   final _name = TextEditingController();
   final _email = TextEditingController();
+  final _birthDate = TextEditingController();
   final _cnpj = TextEditingController();
   final _zipCode = TextEditingController();
   final _addressNumber = TextEditingController();
@@ -41,6 +44,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _confirmation.dispose();
     _name.dispose();
     _email.dispose();
+    _birthDate.dispose();
     _cnpj.dispose();
     _zipCode.dispose();
     _addressNumber.dispose();
@@ -111,6 +115,42 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   String? _required(String? value) => value == null || value.trim().isEmpty ? 'Campo obrigatório.' : null;
+  String? _birthDateRule(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Campo obrigatório.';
+    return _parseBirthDate(value) == null ? 'Informe uma data válida.' : null;
+  }
+
+  DateTime? _parseBirthDate(String value) {
+    final parts = value.split('/');
+    if (parts.length != 3) return null;
+    final day = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final year = int.tryParse(parts[2]);
+    if (day == null || month == null || year == null || year < 1900) return null;
+    final date = DateTime(year, month, day);
+    if (date.day != day || date.month != month || date.year != year) return null;
+    if (date.isAfter(DateTime.now())) return null;
+    return date;
+  }
+
+  Future<void> _selectBirthDate() async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _parseBirthDate(_birthDate.text) ?? DateTime(2000),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      helpText: 'Selecione a data de nascimento',
+      cancelText: 'Cancelar',
+      confirmText: 'Confirmar',
+    );
+    if (selected == null || !mounted) return;
+    setState(() {
+      _birthDate.text =
+          '${selected.day.toString().padLeft(2, '0')}/'
+          '${selected.month.toString().padLeft(2, '0')}/'
+          '${selected.year}';
+    });
+  }
   String? _emailRule(String? value) => value == null || !RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value.trim()) ? 'Informe um e-mail válido.' : null;
   String? _passwordRule(String? value) {
     if (value == null || value.length < 8) return 'Use pelo menos 8 caracteres.';
@@ -149,7 +189,20 @@ class _RegisterPageState extends State<RegisterPage> {
             if (restaurant) _field('CNPJ', controller: _cnpj, hint: '00.000.000/0000-00', keyboard: TextInputType.number, validator: (value) => value == null || value.replaceAll(RegExp(r'\D'), '').length != 14 ? 'Informe os 14 números do CNPJ.' : null),
             _field('E-mail', controller: _email, keyboard: TextInputType.emailAddress, validator: _emailRule),
             _field('Telefone', hint: '(00) 00000-0000', keyboard: TextInputType.phone, validator: _required),
-            if (!restaurant) _field('Data de nascimento', hint: 'dd/mm/aaaa', keyboard: TextInputType.datetime, validator: _required),
+            if (!restaurant)
+              _field(
+                'Data de nascimento',
+                controller: _birthDate,
+                hint: 'dd/mm/aaaa',
+                keyboard: TextInputType.datetime,
+                validator: _birthDateRule,
+                inputFormatters: [DateInputFormatter()],
+                suffixIcon: IconButton(
+                  tooltip: 'Selecionar no calendário',
+                  onPressed: _selectBirthDate,
+                  icon: const Icon(Icons.calendar_month_outlined),
+                ),
+              ),
           ]))),
           Step(title: Text(restaurant ? 'Endereço' : 'Preferências'), isActive: _step >= 1, state: _step > 1 ? StepState.complete : StepState.indexed, content: Form(key: _detailsKey, child: restaurant ? _restaurantAddress() : _customerPreferences())),
           Step(title: const Text('Segurança'), isActive: _step >= 2, content: Form(key: _securityKey, child: Column(children: [
@@ -192,8 +245,8 @@ class _RegisterPageState extends State<RegisterPage> {
     ]);
   }
 
-  Widget _field(String label, {TextEditingController? controller, String? hint, required FormFieldValidator<String> validator, TextInputType keyboard = TextInputType.text, int maxLines = 1}) {
-    return Padding(padding: const EdgeInsets.only(bottom: 14), child: TextFormField(controller: controller, keyboardType: keyboard, maxLines: maxLines, decoration: InputDecoration(labelText: label, hintText: hint, border: const OutlineInputBorder()), validator: validator));
+  Widget _field(String label, {TextEditingController? controller, String? hint, required FormFieldValidator<String> validator, TextInputType keyboard = TextInputType.text, int maxLines = 1, List<TextInputFormatter>? inputFormatters, Widget? suffixIcon}) {
+    return Padding(padding: const EdgeInsets.only(bottom: 14), child: TextFormField(controller: controller, keyboardType: keyboard, maxLines: maxLines, inputFormatters: inputFormatters, decoration: InputDecoration(labelText: label, hintText: hint, border: const OutlineInputBorder(), suffixIcon: suffixIcon), validator: validator));
   }
 
   Widget _passwordField({required TextEditingController controller, required String label, required FormFieldValidator<String> validator}) {

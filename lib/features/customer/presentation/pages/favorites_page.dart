@@ -30,11 +30,85 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
   Future<void> _remove(Establishment establishment) async {
     final session = AppSessionScope.read(context);
-    await CustomerRepository(session.apiClient, session.token!).removeFavorite(establishment.id);
-    if (!mounted) return;
-    setState(() => _favorites = _load());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${establishment.name} removido dos favoritos.')),
+    if (session.confirmFavoriteRemoval) {
+      final decision = await _confirmRemoval(establishment);
+      if (decision == null || !decision.confirmed || !mounted) return;
+      if (decision.doNotAskAgain) {
+        await session.setConfirmFavoriteRemoval(false);
+      }
+    }
+
+    final previous = await _favorites;
+    if (!mounted || previous == null) return;
+    setState(() {
+      _favorites = Future.value(
+        previous.where((item) => item.id != establishment.id).toList(),
+      );
+    });
+
+    try {
+      await CustomerRepository(
+        session.apiClient,
+        session.token!,
+      ).removeFavorite(establishment.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${establishment.name} removido dos favoritos.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _favorites = Future.value(previous));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Não foi possível remover: $error')),
+      );
+    }
+  }
+
+  Future<_RemovalDecision?> _confirmRemoval(
+    Establishment establishment,
+  ) async {
+    var doNotAskAgain = false;
+    return showDialog<_RemovalDecision>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Remover dos favoritos?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Deseja remover ${establishment.name} da sua lista de favoritos?',
+              ),
+              const SizedBox(height: 12),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                title: const Text('Não perguntar novamente'),
+                value: doNotAskAgain,
+                onChanged: (value) => setDialogState(
+                  () => doNotAskAgain = value ?? false,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(
+                _RemovalDecision(
+                  confirmed: true,
+                  doNotAskAgain: doNotAskAgain,
+                ),
+              ),
+              child: const Text('Remover'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -50,7 +124,11 @@ class _FavoritesPageState extends State<FavoritesPage> {
           final favorites = snapshot.data ?? const [];
           if (favorites.isEmpty) return const _Message(icon: Icons.favorite_border, text: 'Você ainda não salvou nenhum estabelecimento.');
           return RefreshIndicator(
-            onRefresh: () async => setState(() => _favorites = _load()),
+            onRefresh: () async {
+              final refreshed = _load();
+              setState(() => _favorites = refreshed);
+              await refreshed;
+            },
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: favorites.length,
@@ -70,6 +148,16 @@ class _FavoritesPageState extends State<FavoritesPage> {
       ),
     );
   }
+}
+
+class _RemovalDecision {
+  const _RemovalDecision({
+    required this.confirmed,
+    required this.doNotAskAgain,
+  });
+
+  final bool confirmed;
+  final bool doNotAskAgain;
 }
 
 class _Message extends StatelessWidget {
