@@ -14,7 +14,7 @@ class AppSession extends ChangeNotifier {
     ApiClient? apiClient,
     bool enablePersistence = true,
   })  : apiClient = apiClient ?? ApiClient(),
-        _enablePersistence = enablePersistence {
+        enablePersistence = enablePersistence {
     authRepository = AuthRepository(this.apiClient);
   }
 
@@ -24,7 +24,7 @@ class AppSession extends ChangeNotifier {
   SharedPreferencesAsync get _preferences => SharedPreferencesAsync();
 
   final ApiClient apiClient;
-  final bool _enablePersistence;
+  final bool enablePersistence;
   late final AuthRepository authRepository;
   UserMode _mode = UserMode.guest;
   String? _token;
@@ -41,7 +41,7 @@ class AppSession extends ChangeNotifier {
   bool get isAuthenticated => _mode != UserMode.guest;
 
   Future<void> restore() async {
-    if (!_enablePersistence) {
+    if (!enablePersistence) {
       _restored = true;
       notifyListeners();
       return;
@@ -69,7 +69,7 @@ class AppSession extends ChangeNotifier {
   Future<void> setConfirmFavoriteRemoval(bool value) async {
     if (_confirmFavoriteRemoval == value) return;
     _confirmFavoriteRemoval = value;
-    if (_enablePersistence) {
+    if (enablePersistence) {
       await _preferences.setBool(_confirmFavoriteRemovalKey, value);
     }
     notifyListeners();
@@ -79,7 +79,7 @@ class AppSession extends ChangeNotifier {
     _token = result.token;
     _user = result.user;
     _mode = result.user.role;
-    if (_enablePersistence) {
+    if (enablePersistence) {
       await _preferences.setString(_tokenKey, result.token);
       await _preferences.setString(_userKey, jsonEncode(result.user.toJson()));
     }
@@ -90,7 +90,7 @@ class AppSession extends ChangeNotifier {
     _token = null;
     _user = null;
     _mode = UserMode.guest;
-    if (_enablePersistence) {
+    if (enablePersistence) {
       await _preferences.remove(_tokenKey);
       await _preferences.remove(_userKey);
     }
