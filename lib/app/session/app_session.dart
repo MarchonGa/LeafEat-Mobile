@@ -12,9 +12,8 @@ export 'package:leafeat_mobile/app/session/user_mode.dart';
 class AppSession extends ChangeNotifier {
   AppSession({
     ApiClient? apiClient,
-    bool enablePersistence = true,
-  })  : apiClient = apiClient ?? ApiClient(),
-        enablePersistence = enablePersistence {
+    this.enablePersistence = true,
+  }) : apiClient = apiClient ?? ApiClient() {
     authRepository = AuthRepository(this.apiClient);
   }
 
