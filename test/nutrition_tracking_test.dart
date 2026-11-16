@@ -9,18 +9,17 @@ import 'package:leafeat_mobile/core/network/api_client.dart';
 import 'package:leafeat_mobile/features/auth/data/auth_repository.dart';
 import 'package:leafeat_mobile/features/auth/data/auth_user.dart';
 import 'package:leafeat_mobile/features/customer/presentation/pages/nutrition_tracking_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('adds an external meal to daily nutrition totals', (tester) async {
-    SharedPreferences.setMockInitialValues({});
     var mealAdded = false;
     final client = MockClient((request) async {
       final path = request.url.path;
       if (request.method == 'GET' && path == '/api/customer/nutrition') {
         final entries = <Map<String, dynamic>>[
           _entry('breakfast', 'Café da manhã', 1280, 72, 145, 44),
-          if (mealAdded) _entry('external', 'Marmita caseira', 500, 30, 60, 15),
+          if (mealAdded)
+            _entry('external', 'Marmita caseira', 500, 30, 60, 15),
         ];
         return _jsonResponse({'entries': entries});
       }
@@ -45,6 +44,7 @@ void main() {
     });
     final session = AppSession(
       apiClient: ApiClient(httpClient: client, baseUrl: 'http://test'),
+      enablePersistence: false,
     );
     addTearDown(session.dispose);
     await session.authenticate(const AuthResult(
@@ -68,11 +68,26 @@ void main() {
     await tester.tap(find.text('Adicionar refeição externa'));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.widgetWithText(TextFormField, 'Nome da refeição'), 'Marmita caseira');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Calorias'), '500');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Carboidratos'), '60');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Proteínas'), '30');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Gorduras'), '15');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Nome da refeição'),
+      'Marmita caseira',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Calorias'),
+      '500',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Carboidratos'),
+      '60',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Proteínas'),
+      '30',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Gorduras'),
+      '15',
+    );
     await tester.ensureVisible(find.text('Adicionar ao resumo'));
     await tester.tap(find.text('Adicionar ao resumo'));
     await tester.pumpAndSettle();
