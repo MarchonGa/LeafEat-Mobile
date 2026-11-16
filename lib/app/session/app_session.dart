@@ -10,7 +10,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 export 'package:leafeat_mobile/app/session/user_mode.dart';
 
 class AppSession extends ChangeNotifier {
-  AppSession({ApiClient? apiClient}) : apiClient = apiClient ?? ApiClient() {
+  AppSession({
+    ApiClient? apiClient,
+    bool enablePersistence = true,
+  })  : apiClient = apiClient ?? ApiClient(),
+        _enablePersistence = enablePersistence {
     authRepository = AuthRepository(this.apiClient);
   }
 
@@ -20,6 +24,7 @@ class AppSession extends ChangeNotifier {
   SharedPreferencesAsync get _preferences => SharedPreferencesAsync();
 
   final ApiClient apiClient;
+  final bool _enablePersistence;
   late final AuthRepository authRepository;
   UserMode _mode = UserMode.guest;
   String? _token;
@@ -36,6 +41,11 @@ class AppSession extends ChangeNotifier {
   bool get isAuthenticated => _mode != UserMode.guest;
 
   Future<void> restore() async {
+    if (!_enablePersistence) {
+      _restored = true;
+      notifyListeners();
+      return;
+    }
     try {
       final token = await _preferences.getString(_tokenKey);
       final userJson = await _preferences.getString(_userKey);
@@ -59,7 +69,9 @@ class AppSession extends ChangeNotifier {
   Future<void> setConfirmFavoriteRemoval(bool value) async {
     if (_confirmFavoriteRemoval == value) return;
     _confirmFavoriteRemoval = value;
-    await _preferences.setBool(_confirmFavoriteRemovalKey, value);
+    if (_enablePersistence) {
+      await _preferences.setBool(_confirmFavoriteRemovalKey, value);
+    }
     notifyListeners();
   }
 
@@ -67,8 +79,10 @@ class AppSession extends ChangeNotifier {
     _token = result.token;
     _user = result.user;
     _mode = result.user.role;
-    await _preferences.setString(_tokenKey, result.token);
-    await _preferences.setString(_userKey, jsonEncode(result.user.toJson()));
+    if (_enablePersistence) {
+      await _preferences.setString(_tokenKey, result.token);
+      await _preferences.setString(_userKey, jsonEncode(result.user.toJson()));
+    }
     notifyListeners();
   }
 
@@ -76,8 +90,10 @@ class AppSession extends ChangeNotifier {
     _token = null;
     _user = null;
     _mode = UserMode.guest;
-    await _preferences.remove(_tokenKey);
-    await _preferences.remove(_userKey);
+    if (_enablePersistence) {
+      await _preferences.remove(_tokenKey);
+      await _preferences.remove(_userKey);
+    }
     notifyListeners();
   }
 
@@ -95,8 +111,11 @@ class AppSession extends ChangeNotifier {
 }
 
 class AppSessionScope extends InheritedNotifier<AppSession> {
-  const AppSessionScope({required AppSession notifier, required super.child, super.key})
-      : super(notifier: notifier);
+  const AppSessionScope({
+    required AppSession notifier,
+    required super.child,
+    super.key,
+  }) : super(notifier: notifier);
 
   static AppSession watch(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<AppSessionScope>();
@@ -105,14 +124,16 @@ class AppSessionScope extends InheritedNotifier<AppSession> {
   }
 
   static AppSession read(BuildContext context) {
-    final element = context.getElementForInheritedWidgetOfExactType<AppSessionScope>();
+    final element =
+        context.getElementForInheritedWidgetOfExactType<AppSessionScope>();
     final scope = element?.widget as AppSessionScope?;
     assert(scope != null, 'AppSessionScope não encontrado.');
     return scope!.notifier!;
   }
 
   static AppSession? maybeRead(BuildContext context) {
-    final element = context.getElementForInheritedWidgetOfExactType<AppSessionScope>();
+    final element =
+        context.getElementForInheritedWidgetOfExactType<AppSessionScope>();
     final scope = element?.widget as AppSessionScope?;
     return scope?.notifier;
   }
