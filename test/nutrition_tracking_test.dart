@@ -88,6 +88,10 @@ void main() {
       find.widgetWithText(TextFormField, 'Gorduras'),
       '15',
     );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Fibras'),
+      '0',
+    );
     await tester.ensureVisible(find.text('Adicionar ao resumo'));
     await tester.tap(find.text('Adicionar ao resumo'));
     await tester.pumpAndSettle();
