@@ -29,8 +29,10 @@ class _EstablishmentDetailPageState extends State<EstablishmentDetailPage> {
   }
 
   Future<void> _loadFavorite() async {
-    final session = AppSessionScope.read(context);
-    if (session.mode != UserMode.customer || session.token == null) {
+    final session = AppSessionScope.maybeRead(context);
+    if (session == null ||
+        session.mode != UserMode.customer ||
+        session.token == null) {
       if (mounted) setState(() => _favorite = false);
       return;
     }

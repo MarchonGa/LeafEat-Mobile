@@ -65,9 +65,11 @@ class _NutritionTrackingPageState extends State<NutritionTrackingPage> {
             : 'Metas nutricionais removidas.')),
       );
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
     }
   }
 
