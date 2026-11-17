@@ -22,7 +22,7 @@ void main() {
 
     expect(find.text('Cliente LeafEat'), findsOneWidget);
     expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.text('Confirmar remoção de favoritos'), findsOneWidget);
+    expect(find.text('Confirmar remoção de favoritos'), findsNothing);
 
     final restaurantChip = find.widgetWithText(
       ChoiceChip,
