@@ -29,6 +29,7 @@ No emulador Android, o computador normalmente é acessado por `http://10.0.2.2:5
 - publicação e histórico de avaliações;
 - acompanhamento diário de macros, calorias e refeições externas;
 - metas nutricionais opcionais, persistentes e editáveis pelo cliente;
+- preferências alimentares persistentes aplicadas à tela Explorar;
 - mocks preservados como fallback quando a API estiver indisponível.
 
 QR Code, mapa real e auditoria não fazem parte desta etapa.
