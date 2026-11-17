@@ -12,6 +12,16 @@ class FoodPreferencesPage extends StatefulWidget {
 }
 
 class _FoodPreferencesPageState extends State<FoodPreferencesPage> {
+  static const _suggestions = [
+    'Camarão',
+    'Amendoim',
+    'Glúten',
+    'Alimentos vermelhos',
+    'Alimentos amarelos',
+  ];
+
+  final _otherRestrictions = TextEditingController();
+  final Set<String> _selectedRestrictions = {};
   bool _vegan = false;
   bool _lactoseFree = false;
   bool _metricMenus = false;
@@ -41,6 +51,20 @@ class _FoodPreferencesPageState extends State<FoodPreferencesPage> {
     _vegan = preferences.vegan;
     _lactoseFree = preferences.lactoseFree;
     _metricMenus = preferences.metricMenus;
+    _selectedRestrictions
+      ..clear()
+      ..addAll(preferences.dietaryRestrictions.where(_suggestions.contains));
+    _otherRestrictions.text = preferences.dietaryRestrictions
+        .where((item) => !_suggestions.contains(item))
+        .join(', ');
+  }
+
+  List<String> _restrictions() {
+    final custom = _otherRestrictions.text
+        .split(',')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty);
+    return {..._selectedRestrictions, ...custom}.toList()..sort();
   }
 
   Future<void> _load() async {
@@ -79,16 +103,25 @@ class _FoodPreferencesPageState extends State<FoodPreferencesPage> {
         vegan: _vegan,
         lactoseFree: _lactoseFree,
         metricMenus: _metricMenus,
+        dietaryRestrictions: _restrictions(),
       ));
       if (!mounted) return;
-      AppSessionScope.read(context).setFoodPreferences(saved);
+      final session = AppSessionScope.read(context);
+      session.setFoodPreferences(saved);
+      final user = session.user;
+      if (user != null) {
+        await session.updateUser(user.copyWith(
+          dietaryRestrictions: saved.dietaryRestrictions,
+        ));
+      }
+      if (!mounted) return;
       setState(() {
         _apply(saved);
         _error = null;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Preferências alimentares atualizadas.'),
+          content: Text('Preferências e restrições atualizadas.'),
         ),
       );
     } catch (error) {
@@ -100,6 +133,12 @@ class _FoodPreferencesPageState extends State<FoodPreferencesPage> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _otherRestrictions.dispose();
+    super.dispose();
   }
 
   @override
@@ -128,19 +167,16 @@ class _FoodPreferencesPageState extends State<FoodPreferencesPage> {
                       ),
                     ),
                   ),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(8, 4, 8, 12),
-                  child: Text(
-                    'As opções selecionadas serão aplicadas automaticamente '
-                    'na tela Explorar. Você ainda poderá alterar os filtros '
-                    'manualmente durante uma busca.',
-                  ),
+                Text(
+                  'Preferências de busca',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Estas opções personalizam os resultados da tela Explorar.',
                 ),
                 SwitchListTile(
                   title: const Text('Alimentação vegana'),
-                  subtitle: const Text(
-                    'Mostrar estabelecimentos com pelo menos uma opção vegana',
-                  ),
                   value: _vegan,
                   onChanged: _saving
                       ? null
@@ -148,23 +184,61 @@ class _FoodPreferencesPageState extends State<FoodPreferencesPage> {
                 ),
                 SwitchListTile(
                   title: const Text('Sem lactose'),
-                  subtitle: const Text(
-                    'Mostrar estabelecimentos com opções sem lactose',
-                  ),
                   value: _lactoseFree,
                   onChanged: _saving
                       ? null
                       : (value) => setState(() => _lactoseFree = value),
                 ),
                 SwitchListTile(
-                  title: const Text('Cardápio com métricas'),
-                  subtitle: const Text(
-                    'Mostrar cardápios com informações nutricionais',
-                  ),
+                  title: const Text('Cardápio com informações nutricionais'),
                   value: _metricMenus,
                   onChanged: _saving
                       ? null
                       : (value) => setState(() => _metricMenus = value),
+                ),
+                const Divider(height: 32),
+                Text(
+                  'Alergias e restrições',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Selecione quantas opções precisar e acrescente outras '
+                  'restrições no campo abaixo.',
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final restriction in _suggestions)
+                      FilterChip(
+                        label: Text(restriction),
+                        selected:
+                            _selectedRestrictions.contains(restriction),
+                        onSelected: _saving
+                            ? null
+                            : (selected) => setState(() {
+                                  if (selected) {
+                                    _selectedRestrictions.add(restriction);
+                                  } else {
+                                    _selectedRestrictions.remove(restriction);
+                                  }
+                                }),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _otherRestrictions,
+                  enabled: !_saving,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Outras restrições',
+                    helperText:
+                        'Separe por vírgulas. Ex.: corante, frutos do mar.',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 FilledButton.icon(
