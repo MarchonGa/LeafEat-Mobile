@@ -9,15 +9,19 @@ void main() {
       'vegan': true,
       'lactoseFree': false,
       'metricMenus': true,
+      'dietaryRestrictions': ['Camarão', 'Alimentos amarelos'],
     });
 
     expect(preferences.vegan, isTrue);
     expect(preferences.lactoseFree, isFalse);
     expect(preferences.metricMenus, isTrue);
+    expect(preferences.dietaryRestrictions,
+        ['Camarão', 'Alimentos amarelos']);
     expect(preferences.toJson(), {
       'vegan': true,
       'lactoseFree': false,
       'metricMenus': true,
+      'dietaryRestrictions': ['Camarão', 'Alimentos amarelos'],
     });
   });
 
