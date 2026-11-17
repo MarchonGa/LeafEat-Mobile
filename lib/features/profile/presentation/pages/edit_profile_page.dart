@@ -253,7 +253,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   if (restaurant) ...[
                     _field(
                       _cnpj,
-                      'CNPJ',
+                      'CNPJ público',
                       validator: (value) => _digits(value, 14, 'O CNPJ'),
                       keyboardType: TextInputType.number,
                     ),
