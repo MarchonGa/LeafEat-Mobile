@@ -4,6 +4,8 @@ import 'package:leafeat_mobile/features/establishments/data/mock_establishments.
 import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
 import 'package:leafeat_mobile/features/establishments/data/establishments_repository.dart';
 import 'package:leafeat_mobile/app/session/app_session.dart';
+import 'package:leafeat_mobile/features/customer/data/customer_repository.dart';
+import 'package:leafeat_mobile/features/customer/data/food_preferences.dart';
 import 'package:leafeat_mobile/features/explore/presentation/pages/establishment_detail_page.dart';
 import 'package:leafeat_mobile/features/explore/presentation/widgets/badge_chip.dart';
 
@@ -27,13 +29,27 @@ class _ExplorePageState extends State<ExplorePage> {
   bool _loading = true;
   bool _loaded = false;
   String? _loadError;
+  FoodPreferences? _appliedPreferences;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final availableSession = AppSessionScope.maybeRead(context);
+    if (availableSession != null) {
+      _applySessionPreferences(AppSessionScope.watch(context));
+    }
     if (_loaded) return;
     _loaded = true;
     _loadEstablishments();
+  }
+
+  void _applySessionPreferences(AppSession session) {
+    final preferences = session.foodPreferences;
+    if (preferences == null || preferences == _appliedPreferences) return;
+    _appliedPreferences = preferences;
+    _vegan = preferences.vegan;
+    _lactoseFree = preferences.lactoseFree;
+    _metricMenu = preferences.metricMenus;
   }
 
   Future<void> _loadEstablishments() async {
@@ -46,7 +62,31 @@ class _ExplorePageState extends State<ExplorePage> {
     try {
       final repository = EstablishmentsRepository(session.apiClient);
       final items = await repository.list();
-      if (mounted) setState(() => _establishments = items);
+      FoodPreferences? preferences;
+      if (session.mode == UserMode.customer && session.token != null) {
+        try {
+          preferences = await CustomerRepository(
+            session.apiClient,
+            session.token!,
+          ).foodPreferences();
+        } catch (_) {
+          preferences = session.foodPreferences;
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _establishments = items;
+          if (preferences != null) {
+            _appliedPreferences = preferences;
+            _vegan = preferences.vegan;
+            _lactoseFree = preferences.lactoseFree;
+            _metricMenu = preferences.metricMenus;
+          }
+        });
+        if (preferences != null) {
+          session.setFoodPreferences(preferences);
+        }
+      }
     } catch (_) {
       if (mounted) {
         setState(() {
