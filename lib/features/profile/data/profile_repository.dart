@@ -29,4 +29,19 @@ class ProfileRepository {
     );
     return AccountProfile.fromJson(json as Map<String, dynamic>);
   }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) =>
+      _api.put(
+        '/api/profile/password',
+        token: _token,
+        body: {
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+          'confirmPassword': confirmPassword,
+        },
+      );
 }
