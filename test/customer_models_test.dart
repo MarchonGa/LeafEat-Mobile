@@ -1,8 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:leafeat_mobile/features/customer/data/customer_review.dart';
+import 'package:leafeat_mobile/features/customer/data/food_preferences.dart';
 import 'package:leafeat_mobile/features/customer/data/nutrition_entry.dart';
 
 void main() {
+  test('parses and serializes food preferences', () {
+    final preferences = FoodPreferences.fromJson({
+      'vegan': true,
+      'lactoseFree': false,
+      'metricMenus': true,
+    });
+
+    expect(preferences.vegan, isTrue);
+    expect(preferences.lactoseFree, isFalse);
+    expect(preferences.metricMenus, isTrue);
+    expect(preferences.toJson(), {
+      'vegan': true,
+      'lactoseFree': false,
+      'metricMenus': true,
+    });
+  });
+
   test('parses a persisted customer review', () {
     final review = CustomerReview.fromJson({
       'id': 'review-1',
