@@ -3,8 +3,26 @@ import 'package:leafeat_mobile/app/session/user_mode.dart';
 import 'package:leafeat_mobile/features/auth/data/auth_user.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_dashboard.dart';
+import 'package:leafeat_mobile/features/restaurant/data/restaurant_review.dart';
 
 void main() {
+  test('maps review received by restaurant', () {
+    final review = RestaurantReview.fromJson({
+      'id': 'review-id',
+      'customerName': 'Marina',
+      'dishId': 'dish-id',
+      'dishName': 'Bowl',
+      'dishRating': 5,
+      'environmentRating': 4,
+      'comment': 'Muito bom',
+      'createdAt': '2026-11-17T12:00:00Z',
+    });
+
+    expect(review.customerName, 'Marina');
+    expect(review.dishName, 'Bowl');
+    expect(review.averageRating, 4.5);
+  });
+
   test('maps restaurant dashboard returned by API', () {
     final dashboard = RestaurantDashboard.fromJson({
       'establishmentId': 'establishment-id',
