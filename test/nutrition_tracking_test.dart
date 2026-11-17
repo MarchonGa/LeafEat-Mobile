@@ -11,6 +11,16 @@ import 'package:leafeat_mobile/features/auth/data/auth_user.dart';
 import 'package:leafeat_mobile/features/customer/presentation/pages/nutrition_tracking_page.dart';
 
 void main() {
+  test('calculates calorie goal from macronutrients', () {
+    final calories = calculateCaloriesFromMacros(
+      proteinGrams: 120,
+      carbohydrateGrams: 250,
+      fatGrams: 60,
+    );
+
+    expect(calories, 2020);
+  });
+
   testWidgets('adds an external meal to daily nutrition totals', (tester) async {
     var mealAdded = false;
     final client = MockClient((request) async {
