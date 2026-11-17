@@ -31,7 +31,8 @@ No emulador Android, o computador normalmente é acessado por `http://10.0.2.2:5
 - publicação e histórico de avaliações;
 - acompanhamento diário de macros, calorias e refeições externas;
 - metas nutricionais opcionais, persistentes e editáveis pelo cliente;
-- preferências alimentares persistentes aplicadas à tela Explorar;
+- cálculo automático da meta calórica a partir dos macronutrientes;
+- preferências, alergias e restrições alimentares persistentes em uma área centralizada;
 - edição persistente dos dados do cliente e do restaurante;
 - mocks preservados como fallback quando a API estiver indisponível.
 
