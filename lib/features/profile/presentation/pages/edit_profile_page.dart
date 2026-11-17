@@ -3,6 +3,8 @@ import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
 import 'package:leafeat_mobile/features/profile/data/account_profile.dart';
 import 'package:leafeat_mobile/features/profile/data/profile_repository.dart';
+import 'package:leafeat_mobile/features/profile/presentation/pages/change_password_page.dart';
+import 'package:leafeat_mobile/features/profile/presentation/pages/public_profile_settings_page.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -22,6 +24,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _category = TextEditingController();
   final _description = TextEditingController();
 
+  AccountProfile? _profile;
   bool _initialized = false;
   bool _loading = true;
   bool _saving = false;
@@ -72,6 +75,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   void _apply(AccountProfile profile) {
+    _profile = profile;
     _name.text = profile.name;
     _email.text = profile.email;
     _cnpj.text = profile.cnpj ?? '';
@@ -103,6 +107,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
           : await repository.updateCustomer({
               'name': _name.text.trim(),
               'email': _email.text.trim(),
+              'publicNameMode': _profile?.publicNameMode ?? 'FirstName',
+              'publicAlias': _profile?.publicAlias,
+              'showDietaryPreferences':
+                  _profile?.showDietaryPreferences ?? false,
+              'publicDietaryPreferences':
+                  _profile?.publicDietaryPreferences ?? const [],
             });
       if (!mounted) return;
       final session = AppSessionScope.read(context);
@@ -205,7 +215,41 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     'E-mail',
                     validator: _emailValidator,
                     keyboardType: TextInputType.emailAddress,
+                    helperText: 'Privado — não aparece no perfil público.',
                   ),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.lock_outline),
+                      title: const Text('Alterar senha'),
+                      subtitle: const Text(
+                        'Confirme a senha atual antes de definir uma nova.',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const ChangePasswordPage(),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (!restaurant)
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.public),
+                        title: const Text('Perfil público e privacidade'),
+                        subtitle: const Text(
+                          'Escolha nome, apelido, anonimato e preferências públicas.',
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                const PublicProfileSettingsPage(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 14),
                   if (restaurant) ...[
                     _field(
                       _cnpj,
@@ -240,16 +284,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       validator: _required,
                       maxLines: 4,
                     ),
-                  ] else
-                    const Card(
-                      child: ListTile(
-                        leading: Icon(Icons.privacy_tip_outlined),
-                        title: Text('Preferências em uma área separada'),
-                        subtitle: Text(
-                          'Alergias e restrições são gerenciadas em Preferências alimentares.',
-                        ),
-                      ),
-                    ),
+                  ],
                   const SizedBox(height: 12),
                   FilledButton.icon(
                     onPressed: _saving ? null : _save,
