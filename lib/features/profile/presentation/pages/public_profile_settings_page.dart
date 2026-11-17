@@ -63,7 +63,7 @@ class _PublicProfileSettingsPageState
     if (name.isEmpty) return 'Cliente LeafEat';
     switch (_mode) {
       case 'Masked':
-        return name.characters.first + '******';
+        return '${name.characters.first}******';
       case 'Alias':
         return _alias.text.trim().isEmpty
             ? 'Seu apelido'
@@ -257,3 +257,4 @@ class _PublicProfileSettingsPageState
                 ],
               ),
       );
+}
