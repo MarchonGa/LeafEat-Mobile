@@ -13,6 +13,7 @@ class Dish {
     required this.fiberGrams,
     required this.isVegan,
     required this.isLactoseFree,
+    this.hasNutritionInformation = true,
     this.reviews = const [],
   });
 
@@ -28,6 +29,8 @@ class Dish {
         fiberGrams: (json['fiberGrams'] as num).toDouble(),
         isVegan: json['isVegan'] as bool,
         isLactoseFree: json['isLactoseFree'] as bool,
+        hasNutritionInformation:
+            json['hasNutritionInformation'] as bool? ?? true,
       );
 
   final String id;
@@ -41,6 +44,7 @@ class Dish {
   final double fiberGrams;
   final bool isVegan;
   final bool isLactoseFree;
+  final bool hasNutritionInformation;
   final List<Review> reviews;
 
   static int calculateCalories({
