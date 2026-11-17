@@ -5,6 +5,7 @@ import 'package:leafeat_mobile/app/session/user_mode.dart';
 import 'package:leafeat_mobile/core/network/api_client.dart';
 import 'package:leafeat_mobile/features/auth/data/auth_repository.dart';
 import 'package:leafeat_mobile/features/auth/data/auth_user.dart';
+import 'package:leafeat_mobile/features/customer/data/food_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 export 'package:leafeat_mobile/app/session/user_mode.dart';
@@ -30,12 +31,14 @@ class AppSession extends ChangeNotifier {
   AuthUser? _user;
   bool _restored = false;
   bool _confirmFavoriteRemoval = true;
+  FoodPreferences? _foodPreferences;
 
   UserMode get mode => _mode;
   String? get token => _token;
   AuthUser? get user => _user;
   bool get restored => _restored;
   bool get confirmFavoriteRemoval => _confirmFavoriteRemoval;
+  FoodPreferences? get foodPreferences => _foodPreferences;
 
   bool get isAuthenticated => _mode != UserMode.guest;
 
@@ -74,10 +77,17 @@ class AppSession extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setFoodPreferences(FoodPreferences preferences) {
+    if (_foodPreferences == preferences) return;
+    _foodPreferences = preferences;
+    notifyListeners();
+  }
+
   Future<void> authenticate(AuthResult result) async {
     _token = result.token;
     _user = result.user;
     _mode = result.user.role;
+    _foodPreferences = null;
     if (enablePersistence) {
       await _preferences.setString(_tokenKey, result.token);
       await _preferences.setString(_userKey, jsonEncode(result.user.toJson()));
@@ -89,6 +99,7 @@ class AppSession extends ChangeNotifier {
     _token = null;
     _user = null;
     _mode = UserMode.guest;
+    _foodPreferences = null;
     if (enablePersistence) {
       await _preferences.remove(_tokenKey);
       await _preferences.remove(_userKey);
