@@ -24,7 +24,7 @@ No emulador Android, o computador normalmente é acessado por `http://10.0.2.2:5
 - cadastro e login de cliente e restaurante;
 - sessão JWT persistida localmente;
 - consulta pública de estabelecimentos, pratos e informações nutricionais;
-- cadastro de pratos pelo restaurante autenticado;
+- criação, edição e exclusão persistentes de pratos pelo restaurante autenticado;
 - painel administrativo com indicadores reais do restaurante;
 - avaliações recebidas pelo restaurante integradas à API;
 - favoritos persistidos por cliente;
