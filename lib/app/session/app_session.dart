@@ -55,7 +55,9 @@ class AppSession extends ChangeNotifier {
           await _preferences.getBool(_confirmFavoriteRemovalKey) ?? true;
       if (token != null && userJson != null) {
         _token = token;
-        _user = AuthUser.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+        _user = AuthUser.fromJson(
+          jsonDecode(userJson) as Map<String, dynamic>,
+        );
         _mode = _user!.role;
       }
     } catch (_) {
@@ -90,7 +92,22 @@ class AppSession extends ChangeNotifier {
     _foodPreferences = null;
     if (enablePersistence) {
       await _preferences.setString(_tokenKey, result.token);
-      await _preferences.setString(_userKey, jsonEncode(result.user.toJson()));
+      await _preferences.setString(
+        _userKey,
+        jsonEncode(result.user.toJson()),
+      );
+    }
+    notifyListeners();
+  }
+
+  Future<void> updateUser(AuthUser user) async {
+    _user = user;
+    _mode = user.role;
+    if (enablePersistence) {
+      await _preferences.setString(
+        _userKey,
+        jsonEncode(user.toJson()),
+      );
     }
     notifyListeners();
   }
