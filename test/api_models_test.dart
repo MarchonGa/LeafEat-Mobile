@@ -2,8 +2,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:leafeat_mobile/app/session/user_mode.dart';
 import 'package:leafeat_mobile/features/auth/data/auth_user.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
+import 'package:leafeat_mobile/features/restaurant/data/restaurant_dashboard.dart';
 
 void main() {
+  test('maps restaurant dashboard returned by API', () {
+    final dashboard = RestaurantDashboard.fromJson({
+      'establishmentId': 'establishment-id',
+      'establishmentName': 'Sabor Natural',
+      'totalDishes': 2,
+      'dishesWithNutrition': 1,
+      'reviewCount': 3,
+      'averageRating': 4.46,
+      'coveragePercentage': 50.0,
+      'badgeLevel': 'Prata',
+    });
+
+    expect(dashboard.totalDishes, 2);
+    expect(dashboard.dishesWithNutrition, 1);
+    expect(dashboard.reviewCount, 3);
+    expect(dashboard.averageRating, 4.46);
+    expect(dashboard.coveragePercentage, 50);
+    expect(dashboard.badgeLevel, 'Prata');
+  });
+
   test('maps restaurant session returned by API', () {
     final user = AuthUser.fromJson({
       'id': 'user-id',
