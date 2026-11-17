@@ -182,6 +182,7 @@ class _NutritionGoalsForm extends StatefulWidget {
 class _NutritionGoalsFormState extends State<_NutritionGoalsForm> {
   final _formKey = GlobalKey<FormState>();
   late final List<TextEditingController> _controllers;
+  bool _automaticCalories = true;
 
   @override
   void initState() {
@@ -193,6 +194,10 @@ class _NutritionGoalsFormState extends State<_NutritionGoalsForm> {
       TextEditingController(text: _initialValue(widget.initial.fatGrams)),
       TextEditingController(text: _initialValue(widget.initial.fiberGrams)),
     ];
+    for (final index in [1, 2, 3]) {
+      _controllers[index].addListener(_recalculateCalories);
+    }
+    _recalculateCalories();
   }
 
   @override
@@ -210,6 +215,23 @@ class _NutritionGoalsFormState extends State<_NutritionGoalsForm> {
         _controllers[index].text.trim().replaceAll(',', '.'),
       );
 
+  void _recalculateCalories() {
+    if (!_automaticCalories) return;
+    final protein = _number(1);
+    final carbohydrate = _number(2);
+    final fat = _number(3);
+    if (protein == null || carbohydrate == null || fat == null) {
+      _controllers[0].clear();
+      return;
+    }
+    final calories = calculateCaloriesFromMacros(
+      proteinGrams: protein,
+      carbohydrateGrams: carbohydrate,
+      fatGrams: fat,
+    );
+    _controllers[0].text = calories.toString();
+  }
+
   String? _requiredPositive(String? value) {
     final number = double.tryParse((value ?? '').trim().replaceAll(',', '.'));
     return number == null || number <= 0
@@ -224,8 +246,15 @@ class _NutritionGoalsFormState extends State<_NutritionGoalsForm> {
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
+    final calories = _automaticCalories
+        ? calculateCaloriesFromMacros(
+            proteinGrams: _number(1)!,
+            carbohydrateGrams: _number(2)!,
+            fatGrams: _number(3)!,
+          ).toDouble()
+        : _number(0);
     Navigator.of(context).pop(NutritionGoals(
-      calories: _number(0),
+      calories: calories,
       proteinGrams: _number(1),
       carbohydrateGrams: _number(2),
       fatGrams: _number(3),
@@ -264,9 +293,22 @@ class _NutritionGoalsFormState extends State<_NutritionGoalsForm> {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Informe seus próprios valores. O LeafEat não calcula nem prescreve metas.',
+                'Informe seus próprios valores. O LeafEat calcula apenas as calorias a partir dos macros e não prescreve metas.',
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Calcular calorias automaticamente'),
+                subtitle: const Text(
+                  'Proteínas e carboidratos: 4 kcal/g; gorduras: 9 kcal/g.',
+                ),
+                value: _automaticCalories,
+                onChanged: (value) {
+                  setState(() => _automaticCalories = value);
+                  if (value) _recalculateCalories();
+                },
+              ),
+              const SizedBox(height: 12),
               for (var index = 0; index < fields.length; index++) ...[
                 TextFormField(
                   controller: _controllers[index],
@@ -276,9 +318,13 @@ class _NutritionGoalsFormState extends State<_NutritionGoalsForm> {
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
                   ],
+                  enabled: index != 0 || !_automaticCalories,
                   decoration: InputDecoration(
                     labelText: fields[index].$1,
                     suffixText: fields[index].$2,
+                    helperText: index == 0 && _automaticCalories
+                        ? 'Calculadas automaticamente a partir dos macros.'
+                        : null,
                   ),
                   validator: fields[index].$3,
                 ),
@@ -349,5 +395,12 @@ class _MealInput {
   final double fats;
   final double fibers;
 }
+
+int calculateCaloriesFromMacros({
+  required double proteinGrams,
+  required double carbohydrateGrams,
+  required double fatGrams,
+}) =>
+    ((proteinGrams * 4) + (carbohydrateGrams * 4) + (fatGrams * 9)).round();
 
 String _format(double value) => value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1).replaceAll('.', ',');
