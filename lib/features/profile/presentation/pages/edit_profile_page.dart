@@ -15,7 +15,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _email = TextEditingController();
-  final _restrictions = TextEditingController();
   final _cnpj = TextEditingController();
   final _zipCode = TextEditingController();
   final _addressNumber = TextEditingController();
@@ -75,7 +74,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void _apply(AccountProfile profile) {
     _name.text = profile.name;
     _email.text = profile.email;
-    _restrictions.text = profile.dietaryRestrictions.join(', ');
     _cnpj.text = profile.cnpj ?? '';
     _zipCode.text = profile.zipCode ?? '';
     _addressNumber.text = profile.addressNumber ?? '';
@@ -105,11 +103,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
           : await repository.updateCustomer({
               'name': _name.text.trim(),
               'email': _email.text.trim(),
-              'dietaryRestrictions': _restrictions.text
-                  .split(',')
-                  .map((item) => item.trim())
-                  .where((item) => item.isNotEmpty)
-                  .toList(),
             });
       if (!mounted) return;
       final session = AppSessionScope.read(context);
@@ -161,7 +154,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     for (final controller in [
       _name,
       _email,
-      _restrictions,
       _cnpj,
       _zipCode,
       _addressNumber,
@@ -249,12 +241,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       maxLines: 4,
                     ),
                   ] else
-                    _field(
-                      _restrictions,
-                      'Restrições alimentares',
-                      maxLines: 3,
-                      helperText:
-                          'Separe por vírgulas. Ex.: lactose, camarão, amendoim.',
+                    const Card(
+                      child: ListTile(
+                        leading: Icon(Icons.privacy_tip_outlined),
+                        title: Text('Preferências em uma área separada'),
+                        subtitle: Text(
+                          'Alergias e restrições são gerenciadas em Preferências alimentares.',
+                        ),
+                      ),
                     ),
                   const SizedBox(height: 12),
                   FilledButton.icon(
