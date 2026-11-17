@@ -1,4 +1,5 @@
 import 'package:leafeat_mobile/core/network/api_client.dart';
+import 'package:leafeat_mobile/features/establishments/domain/models/dish.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_dashboard.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_review.dart';
 
@@ -7,6 +8,40 @@ class RestaurantRepository {
 
   final ApiClient _api;
   final String _token;
+
+  Future<Dish> createDish(
+    String establishmentId,
+    Map<String, dynamic> body,
+  ) async {
+    final json = await _api.post(
+      '/api/establishments/$establishmentId/dishes',
+      body: body,
+      token: _token,
+    );
+    return Dish.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<Dish> updateDish(
+    String establishmentId,
+    String dishId,
+    Map<String, dynamic> body,
+  ) async {
+    final json = await _api.put(
+      '/api/establishments/$establishmentId/dishes/$dishId',
+      body: body,
+      token: _token,
+    );
+    return Dish.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<void> deleteDish(
+    String establishmentId,
+    String dishId,
+  ) =>
+      _api.delete(
+        '/api/establishments/$establishmentId/dishes/$dishId',
+        token: _token,
+      );
 
   Future<List<RestaurantReview>> reviews() async {
     final json = await _api.get(
