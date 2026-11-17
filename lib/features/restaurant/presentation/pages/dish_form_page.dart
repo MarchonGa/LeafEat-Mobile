@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/dish.dart';
-import 'package:leafeat_mobile/features/establishments/data/establishments_repository.dart';
+import 'package:leafeat_mobile/features/restaurant/data/restaurant_repository.dart';
 import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/network/api_exception.dart';
 
@@ -71,53 +71,56 @@ class _DishFormPageState extends State<DishFormPage> {
     if (mounted) setState(() {});
   }
 
+  Map<String, dynamic> _requestBody() => {
+        'name': _name.text.trim(),
+        'description': _description.text.trim(),
+        'price': _number(_price),
+        'proteinGrams': _number(_protein),
+        'carbohydrateGrams': _number(_carbohydrate),
+        'fatGrams': _number(_fat),
+        'fiberGrams': _number(_fiber),
+        'isVegan': _isVegan,
+        'isLactoseFree': _isLactoseFree,
+        'hasNutritionInformation': true,
+      };
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    final localDish = Dish(
-        id: widget.dish?.id ?? 'dish-${DateTime.now().millisecondsSinceEpoch}',
-        name: _name.text.trim(),
-        description: _description.text.trim(),
-        price: _number(_price),
-        calories: _calculatedCalories,
-        proteinGrams: _number(_protein),
-        carbohydrateGrams: _number(_carbohydrate),
-        fatGrams: _number(_fat),
-        fiberGrams: _number(_fiber),
-        isVegan: _isVegan,
-        isLactoseFree: _isLactoseFree,
-        reviews: widget.dish?.reviews ?? const [],
-      );
-    if (widget.dish != null) {
-      Navigator.of(context).pop(localDish);
-      return;
-    }
-
     final session = AppSessionScope.read(context);
     final establishmentId = session.user?.establishmentId;
     if (session.token == null || establishmentId == null) {
-      Navigator.of(context).pop(localDish);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Entre como restaurante para salvar o prato.'),
+        ),
+      );
       return;
     }
+
     setState(() => _saving = true);
     try {
-      final dish = await EstablishmentsRepository(session.apiClient, token: session.token).createDish(
-        establishmentId,
-        {
-          'name': _name.text.trim(),
-          'description': _description.text.trim(),
-          'price': _number(_price),
-          'proteinGrams': _number(_protein),
-          'carbohydrateGrams': _number(_carbohydrate),
-          'fatGrams': _number(_fat),
-          'fiberGrams': _number(_fiber),
-          'isVegan': _isVegan,
-          'isLactoseFree': _isLactoseFree,
-          'hasNutritionInformation': true,
-        },
+      final repository = RestaurantRepository(
+        session.apiClient,
+        session.token!,
       );
+      final existing = widget.dish;
+      final dish = existing == null
+          ? await repository.createDish(
+              establishmentId,
+              _requestBody(),
+            )
+          : await repository.updateDish(
+              establishmentId,
+              existing.id,
+              _requestBody(),
+            );
       if (mounted) Navigator.of(context).pop(dish);
     } on ApiException catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message)));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message)),
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
