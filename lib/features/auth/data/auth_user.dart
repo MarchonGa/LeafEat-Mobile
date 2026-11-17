@@ -14,10 +14,13 @@ class AuthUser {
         id: json['id'] as String,
         name: json['name'] as String,
         email: json['email'] as String,
-        role: json['role'] == 'Restaurant' ? UserMode.restaurant : UserMode.customer,
-        dietaryRestrictions: (json['dietaryRestrictions'] as List<dynamic>? ?? const [])
-            .map((item) => item.toString())
-            .toList(),
+        role: json['role'] == 'Restaurant'
+            ? UserMode.restaurant
+            : UserMode.customer,
+        dietaryRestrictions:
+            (json['dietaryRestrictions'] as List<dynamic>? ?? const [])
+                .map((item) => item.toString())
+                .toList(),
         establishmentId: json['establishmentId'] as String?,
       );
 
@@ -27,6 +30,21 @@ class AuthUser {
   final UserMode role;
   final List<String> dietaryRestrictions;
   final String? establishmentId;
+
+  AuthUser copyWith({
+    String? name,
+    String? email,
+    List<String>? dietaryRestrictions,
+  }) =>
+      AuthUser(
+        id: id,
+        name: name ?? this.name,
+        email: email ?? this.email,
+        role: role,
+        dietaryRestrictions:
+            dietaryRestrictions ?? this.dietaryRestrictions,
+        establishmentId: establishmentId,
+      );
 
   Map<String, dynamic> toJson() => {
         'id': id,
