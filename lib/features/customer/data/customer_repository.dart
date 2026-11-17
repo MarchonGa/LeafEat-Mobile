@@ -1,5 +1,6 @@
 import 'package:leafeat_mobile/core/network/api_client.dart';
 import 'package:leafeat_mobile/features/customer/data/customer_review.dart';
+import 'package:leafeat_mobile/features/customer/data/food_preferences.dart';
 import 'package:leafeat_mobile/features/customer/data/nutrition_entry.dart';
 import 'package:leafeat_mobile/features/customer/data/nutrition_goals.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
@@ -9,6 +10,25 @@ class CustomerRepository {
 
   final ApiClient _api;
   final String _token;
+
+  Future<FoodPreferences> foodPreferences() async {
+    final json = await _api.get(
+      '/api/customer/food-preferences',
+      token: _token,
+    );
+    return FoodPreferences.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<FoodPreferences> updateFoodPreferences(
+    FoodPreferences preferences,
+  ) async {
+    final json = await _api.put(
+      '/api/customer/food-preferences',
+      body: preferences.toJson(),
+      token: _token,
+    );
+    return FoodPreferences.fromJson(json as Map<String, dynamic>);
+  }
 
   Future<List<Establishment>> favorites() async {
     final json = await _api.get('/api/customer/favorites', token: _token) as List<dynamic>;
