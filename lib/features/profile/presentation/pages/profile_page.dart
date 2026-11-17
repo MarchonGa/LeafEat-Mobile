@@ -7,6 +7,7 @@ import 'package:leafeat_mobile/features/customer/presentation/pages/favorites_pa
 import 'package:leafeat_mobile/features/customer/presentation/pages/food_preferences_page.dart';
 import 'package:leafeat_mobile/features/customer/presentation/pages/my_reviews_page.dart';
 import 'package:leafeat_mobile/features/customer/presentation/pages/nutrition_tracking_page.dart';
+import 'package:leafeat_mobile/features/profile/presentation/pages/edit_profile_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -124,6 +125,10 @@ class _CustomerProfile extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       children: [
         _ProfileHeader(icon: Icons.person, title: user?.name ?? 'Cliente LeafEat', subtitle: user?.email ?? 'Modo de demonstração'),
+        if (user != null) ...[
+          const SizedBox(height: 16),
+          const _EditProfileCard(),
+        ],
         const SizedBox(height: 24),
         const _AccountOptions(locked: false),
         const SizedBox(height: 24),
@@ -174,6 +179,10 @@ class _RestaurantProfile extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       children: [
         _ProfileHeader(icon: Icons.store, title: user?.name ?? 'Sabor Natural', subtitle: user?.email ?? 'Modo de demonstração'),
+        if (user != null) ...[
+          const SizedBox(height: 16),
+          const _EditProfileCard(),
+        ],
         const SizedBox(height: 20),
         const Text('Pratos equilibrados preparados com ingredientes frescos e informações nutricionais por porção.'),
         const SizedBox(height: 22),
@@ -189,6 +198,25 @@ class _RestaurantProfile extends StatelessWidget {
         const SizedBox(height: 28),
         const _ModeSwitcher(),
       ],
+    );
+  }
+}
+
+class _EditProfileCard extends StatelessWidget {
+  const _EditProfileCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.edit_outlined),
+        title: const Text('Editar dados do perfil'),
+        subtitle: const Text(
+          'Atualize suas informações pessoais e públicas.',
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => _open(context, const EditProfilePage()),
+      ),
     );
   }
 }
