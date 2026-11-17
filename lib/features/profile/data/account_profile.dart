@@ -6,6 +6,10 @@ class AccountProfile {
     required this.role,
     required this.dietaryRestrictions,
     required this.establishmentId,
+    required this.publicNameMode,
+    required this.showDietaryPreferences,
+    required this.publicDietaryPreferences,
+    this.publicAlias,
     this.cnpj,
     this.zipCode,
     this.addressNumber,
@@ -30,6 +34,14 @@ class AccountProfile {
         establishmentId: json['establishmentId'] as String?,
         description: json['description'] as String?,
         category: json['category'] as String?,
+        publicNameMode: json['publicNameMode'] as String? ?? 'FirstName',
+        publicAlias: json['publicAlias'] as String?,
+        showDietaryPreferences:
+            json['showDietaryPreferences'] as bool? ?? false,
+        publicDietaryPreferences:
+            (json['publicDietaryPreferences'] as List<dynamic>? ?? const [])
+                .map((item) => item.toString())
+                .toList(),
       );
 
   final String id;
@@ -44,4 +56,8 @@ class AccountProfile {
   final String? establishmentId;
   final String? description;
   final String? category;
+  final String publicNameMode;
+  final String? publicAlias;
+  final bool showDietaryPreferences;
+  final List<String> publicDietaryPreferences;
 }
