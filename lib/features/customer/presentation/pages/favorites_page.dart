@@ -194,6 +194,38 @@ class _FavoritesPageState extends State<FavoritesPage> {
     );
   }
 
+  Future<void> _showFavoriteSettings() async {
+    final session = AppSessionScope.read(context);
+    var confirmRemoval = session.confirmFavoriteRemoval;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Configurações de favoritos'),
+          content: SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            secondary: const Icon(Icons.delete_outline),
+            title: const Text('Confirmar antes de remover'),
+            subtitle: const Text(
+              'Perguntar antes de retirar um local da lista.',
+            ),
+            value: confirmRemoval,
+            onChanged: (value) {
+              setDialogState(() => confirmRemoval = value);
+              session.setConfirmFavoriteRemoval(value);
+            },
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Concluir'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -201,6 +233,13 @@ class _FavoritesPageState extends State<FavoritesPage> {
         title: const Text('Locais favoritos'),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
+        actions: [
+          IconButton(
+            tooltip: 'Configurações de favoritos',
+            onPressed: _showFavoriteSettings,
+            icon: const Icon(Icons.settings_outlined),
+          ),
+        ],
       ),
       body: _buildBody(),
     );
