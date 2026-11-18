@@ -49,7 +49,7 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
     if (establishmentId == null || repository == null) {
       setState(() {
         _loading = false;
-        _error = 'Entre como restaurante para consultar as receitas.';
+        _error = 'Entre como restaurante para consultar os itens personalizados.';
       });
       return;
     }
@@ -83,7 +83,7 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
     if (recipe == null || !mounted) return;
     setState(() => _recipes.add(recipe));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Receita “${recipe.name}” salva.')),
+      SnackBar(content: Text('Item “${recipe.name}” salvo.')),
     );
   }
 
@@ -91,9 +91,9 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Excluir receita?'),
+        title: const Text('Excluir item?'),
         content: Text(
-          'A receita “${recipe.name}” e seus ingredientes serão removidos.',
+          'O item “${recipe.name}” e seus ingredientes serão removidos.',
         ),
         actions: [
           TextButton(
@@ -243,12 +243,12 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.selectionMode ? 'Escolher receita' : 'Receitas da casa'),
+        title: Text(widget.selectionMode ? 'Escolher item' : 'Itens personalizados'),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
         actions: [
           IconButton(
-            tooltip: 'Atualizar receitas',
+            tooltip: 'Atualizar itens',
             onPressed: _loading ? null : _load,
             icon: const Icon(Icons.refresh),
           ),
@@ -264,9 +264,9 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
                 children: [
                   Text(
                     widget.selectionMode
-                        ? 'Escolha uma receita e informe quantos gramas serão '
+                        ? 'Escolha um item e informe quantos gramas serão '
                             'usados no prato.'
-                        : 'Monte preparos reutilizáveis com alimentos da TACO. '
+                        : 'Cadastre itens reutilizáveis com alimentos da TACO. '
                             'Depois eles poderão compor diferentes pratos.',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
@@ -291,7 +291,7 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
                           children: [
                             Icon(Icons.menu_book_outlined, size: 48),
                             SizedBox(height: 10),
-                            Text('Nenhuma receita cadastrada.'),
+                            Text('Nenhum item personalizado cadastrado.'),
                           ],
                         ),
                       ),
@@ -322,7 +322,7 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
                                   ),
                                 )
                               : IconButton(
-                                  tooltip: 'Excluir receita',
+                                  tooltip: 'Excluir item',
                                   onPressed: () => _confirmDelete(recipe),
                                   icon: const Icon(Icons.delete_outline),
                                 ),
@@ -336,7 +336,7 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
           : FloatingActionButton.extended(
               onPressed: _loading ? null : _create,
               icon: const Icon(Icons.add),
-              label: const Text('Nova receita'),
+              label: const Text('Novo item'),
             ),
     );
   }
