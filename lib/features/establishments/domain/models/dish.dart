@@ -15,6 +15,7 @@ class Dish {
     required this.isLactoseFree,
     this.hasNutritionInformation = true,
     this.recipeComponents = const [],
+    this.foodComponents = const [],
     this.reviews = const [],
   });
 
@@ -37,6 +38,11 @@ class Dish {
                 .map(DishRecipeComponent.fromJson)
                 .toList(growable: false) ??
             const [],
+        foodComponents: (json['foodComponents'] as List<dynamic>?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(DishFoodComponent.fromJson)
+                .toList(growable: false) ??
+            const [],
       );
 
   final String id;
@@ -52,6 +58,7 @@ class Dish {
   final bool isLactoseFree;
   final bool hasNutritionInformation;
   final List<DishRecipeComponent> recipeComponents;
+  final List<DishFoodComponent> foodComponents;
   final List<Review> reviews;
 
   static int calculateCalories({
@@ -116,3 +123,55 @@ class DishRecipeComponent {
     );
   }
 }
+
+class DishFoodComponent {
+  const DishFoodComponent({
+    required this.id,
+    required this.nutritionalFoodId,
+    required this.foodName,
+    required this.quantityGrams,
+    required this.energyKcal,
+    required this.proteinGrams,
+    required this.carbohydrateGrams,
+    required this.fatGrams,
+    required this.fiberGrams,
+    required this.sodiumMilligrams,
+    this.preparation,
+  });
+
+  final String id;
+  final int nutritionalFoodId;
+  final String foodName;
+  final String? preparation;
+  final double quantityGrams;
+  final double? energyKcal;
+  final double? proteinGrams;
+  final double? carbohydrateGrams;
+  final double? fatGrams;
+  final double? fiberGrams;
+  final double? sodiumMilligrams;
+
+  factory DishFoodComponent.fromJson(Map<String, dynamic> json) {
+    final values = json['per100Grams'] is Map<String, dynamic>
+        ? json['per100Grams'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+    return DishFoodComponent(
+      id: json['id']?.toString() ?? '',
+      nutritionalFoodId:
+          (json['nutritionalFoodId'] as num?)?.toInt() ?? 0,
+      foodName: json['foodName']?.toString() ?? '',
+      preparation: json['preparation']?.toString(),
+      quantityGrams:
+          (json['quantityGrams'] as num?)?.toDouble() ?? 0,
+      energyKcal: (values['energyKcal'] as num?)?.toDouble(),
+      proteinGrams: (values['proteinGrams'] as num?)?.toDouble(),
+      carbohydrateGrams:
+          (values['carbohydrateGrams'] as num?)?.toDouble(),
+      fatGrams: (values['fatGrams'] as num?)?.toDouble(),
+      fiberGrams: (values['fiberGrams'] as num?)?.toDouble(),
+      sodiumMilligrams:
+          (values['sodiumMilligrams'] as num?)?.toDouble(),
+    );
+  }
+}
+
