@@ -471,6 +471,54 @@ class _DishFormPageState extends State<DishFormPage> {
               validator: _numeric,
               numeric: true,
             ),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const SizedBox.square(
+                      dimension: 64,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Color(0xFFE7EEE5),
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(12),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.add_photo_alternate_outlined,
+                          size: 30,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Foto do prato',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Envio de imagens será disponibilizado '
+                            'em uma próxima etapa.',
+                          ),
+                        ],
+                      ),
+                    ),
+                    OutlinedButton(
+                      onPressed: null,
+                      child: Text('Em breve'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 8),
             Text(
               'Informações por porção',
@@ -479,11 +527,11 @@ class _DishFormPageState extends State<DishFormPage> {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text(
-                'Calcular usando receitas da casa',
+                'Calcular usando componentes',
               ),
               subtitle: const Text(
-                'Informe quantos gramas de cada receita entram '
-                'neste prato.',
+                'Use receitas da casa e/ou alimentos prontos da '
+                'TACO, informando a quantidade em gramas.',
               ),
               value: _automaticFromRecipes,
               onChanged: _saving
@@ -496,24 +544,29 @@ class _DishFormPageState extends State<DishFormPage> {
                     },
             ),
             if (_automaticFromRecipes) ...[
-              Row(
+              Text(
+                'Composição do prato',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  Expanded(
-                    child: Text(
-                      'Composição do prato',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium,
-                    ),
-                  ),
                   FilledButton.icon(
                     onPressed: _saving ? null : _addRecipe,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Receita'),
+                    icon: const Icon(Icons.menu_book_outlined),
+                    label: const Text('Receita da casa'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: _saving ? null : _addFood,
+                    icon: const Icon(Icons.egg_alt_outlined),
+                    label: const Text('Alimento da TACO'),
                   ),
                 ],
               ),
-              if (_recipeComponents.isEmpty)
+              if (_recipeComponents.isEmpty &&
+                  _foodComponents.isEmpty)
                 const Card(
                   child: Padding(
                     padding: EdgeInsets.all(20),
@@ -550,6 +603,27 @@ class _DishFormPageState extends State<DishFormPage> {
                       ),
                     ),
                   ),
+              for (var index = 0;
+                  index < _foodComponents.length;
+                  index++)
+                Card(
+                  child: ListTile(
+                    onTap: () => _editFoodQuantity(index),
+                    leading: const CircleAvatar(
+                      child: Icon(Icons.egg_alt_outlined),
+                    ),
+                    title: Text(_foodComponents[index].foodName),
+                    subtitle: Text(
+                      '${_format(_foodComponents[index].quantityGrams)} g '
+                      'usados no prato • TACO',
+                    ),
+                    trailing: IconButton(
+                      tooltip: 'Remover alimento',
+                      onPressed: () => _removeFood(index),
+                      icon: const Icon(Icons.delete_outline),
+                    ),
+                  ),
+                ),
               _NutritionSummary(nutrients: componentTotal),
             ] else ...[
               Card(
