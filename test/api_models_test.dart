@@ -263,4 +263,55 @@ void main() {
     });
   });
 
+
+  test('maps and sends a TACO food used directly in a dish', () {
+    final dish = Dish.fromJson({
+      'id': 'dish-id',
+      'name': 'Prato com ovo',
+      'description': 'Arroz e ovo cozido',
+      'price': 20.0,
+      'calories': 146,
+      'proteinGrams': 13.3,
+      'carbohydrateGrams': 0.6,
+      'fatGrams': 9.5,
+      'fiberGrams': 0.0,
+      'isVegan': false,
+      'isLactoseFree': true,
+      'hasNutritionInformation': true,
+      'recipeComponents': <Map<String, dynamic>>[],
+      'foodComponents': [
+        {
+          'id': 'food-component-id',
+          'nutritionalFoodId': 120,
+          'foodName': 'Ovo, de galinha, inteiro, cozido',
+          'preparation': 'cozido',
+          'quantityGrams': 100.0,
+          'per100Grams': {
+            'energyKcal': 146.0,
+            'proteinGrams': 13.3,
+            'carbohydrateGrams': 0.6,
+            'fatGrams': 9.5,
+            'fiberGrams': 0.0,
+          },
+          'contribution': {'energyKcal': 146.0},
+        },
+      ],
+    });
+
+    expect(dish.foodComponents.single.foodName, contains('Ovo'));
+    expect(dish.foodComponents.single.quantityGrams, 100);
+
+    const selection = DishFoodSelection(
+      nutritionalFoodId: 120,
+      foodName: 'Ovo, de galinha, inteiro, cozido',
+      preparation: 'cozido',
+      quantityGrams: 100,
+      per100Grams: Nutrients(energyKcal: 146),
+    );
+    expect(selection.toRequestJson(), {
+      'nutritionalFoodId': 120,
+      'quantityGrams': 100.0,
+    });
+  });
+
 }
