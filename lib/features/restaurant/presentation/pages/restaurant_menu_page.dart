@@ -5,6 +5,7 @@ import 'package:leafeat_mobile/features/establishments/data/establishments_repos
 import 'package:leafeat_mobile/features/establishments/domain/models/dish.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_repository.dart';
 import 'package:leafeat_mobile/features/restaurant/presentation/pages/dish_form_page.dart';
+import 'package:leafeat_mobile/features/restaurant/presentation/pages/nutritional_catalog_page.dart';
 
 class RestaurantMenuPage extends StatefulWidget {
   const RestaurantMenuPage({super.key});
@@ -171,6 +172,25 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16),
                 children: [
+                  Card(
+                    child: ListTile(
+                      onTap: () => Navigator.of(context).push<void>(
+                        MaterialPageRoute(
+                          builder: (_) => const NutritionalCatalogPage(),
+                        ),
+                      ),
+                      leading: const CircleAvatar(
+                        child: Icon(Icons.science_outlined),
+                      ),
+                      title: const Text('Catálogo nutricional'),
+                      subtitle: const Text(
+                        'Busque alimentos da TACO e calcule os valores pela '
+                        'quantidade usada na receita.',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   if (_error != null)
                     Card(
                       color: Theme.of(context).colorScheme.errorContainer,
