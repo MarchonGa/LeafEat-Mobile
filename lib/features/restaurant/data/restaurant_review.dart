@@ -18,7 +18,7 @@ class RestaurantReview {
   ) =>
       RestaurantReview(
         id: json['id'] as String,
-        customerId: json['customerId'] as String,
+        customerId: json['customerId']?.toString() ?? '',
         customerName:
             json['customerName'] as String? ?? 'Cliente LeafEat',
         dishId: json['dishId'] as String?,
