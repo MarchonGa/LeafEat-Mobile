@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_repository.dart';
+import 'package:leafeat_mobile/features/profile/presentation/pages/public_customer_profile_page.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_review.dart';
 
 class RestaurantReviewsPage extends StatefulWidget {
@@ -156,6 +157,17 @@ class _ReviewCard extends StatelessWidget {
                   ),
                 ),
                 _Rating(value: review.averageRating),
+                IconButton(
+                  tooltip: 'Abrir perfil público',
+                  onPressed: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => PublicCustomerProfilePage(
+                        userId: review.customerId,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.person_search_outlined),
+                ),
               ],
             ),
             if (review.dishName != null) ...[
@@ -181,6 +193,16 @@ class _ReviewCard extends StatelessWidget {
                   avatar: const Icon(Icons.storefront, size: 18),
                   label: Text(
                     'Ambiente: ${review.environmentRating}',
+                  ),
+                ),
+                Chip(
+                  avatar: const Icon(Icons.thumb_up_outlined, size: 18),
+                  label: Text('Útil: ${review.helpfulCount}'),
+                ),
+                Chip(
+                  avatar: const Icon(Icons.thumb_down_outlined, size: 18),
+                  label: Text(
+                    'Não útil: ${review.notHelpfulCount}',
                   ),
                 ),
               ],
