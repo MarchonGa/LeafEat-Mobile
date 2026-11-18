@@ -383,7 +383,7 @@ class _DishFormPageState extends State<DishFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Adicione uma receita ou um alimento ao prato.',
+            'Adicione um item personalizado ou um alimento ao prato.',
           ),
         ),
       );
@@ -536,7 +536,7 @@ class _DishFormPageState extends State<DishFormPage> {
                 'Calcular usando componentes',
               ),
               subtitle: const Text(
-                'Use receitas da casa e/ou alimentos prontos da '
+                'Use itens personalizados e/ou alimentos prontos da '
                 'TACO, informando a quantidade em gramas.',
               ),
               value: _automaticFromRecipes,
@@ -562,7 +562,7 @@ class _DishFormPageState extends State<DishFormPage> {
                   FilledButton.icon(
                     onPressed: _saving ? null : _addRecipe,
                     icon: const Icon(Icons.menu_book_outlined),
-                    label: const Text('Receita da casa'),
+                    label: const Text('Item personalizado'),
                   ),
                   OutlinedButton.icon(
                     onPressed: _saving ? null : _addFood,
@@ -603,7 +603,7 @@ class _DishFormPageState extends State<DishFormPage> {
                         'usados no prato',
                       ),
                       trailing: IconButton(
-                        tooltip: 'Remover receita',
+                        tooltip: 'Remover item',
                         onPressed: () => _removeRecipe(index),
                         icon: const Icon(Icons.delete_outline),
                       ),
