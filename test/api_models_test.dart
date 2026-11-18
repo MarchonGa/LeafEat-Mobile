@@ -4,6 +4,7 @@ import 'package:leafeat_mobile/features/auth/data/auth_user.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_dashboard.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_review.dart';
+import 'package:leafeat_mobile/features/restaurant/data/nutritional_food.dart';
 
 void main() {
   test('maps review received by restaurant', () {
@@ -88,4 +89,61 @@ void main() {
     expect(establishment.dishes.single.name, 'Bowl vegano');
     expect(establishment.badge.label, 'Ouro');
   });
+
+  test('maps a paginated nutritional catalog response', () {
+    final page = NutritionalFoodPage.fromJson({
+      'page': 1,
+      'pageSize': 25,
+      'total': 597,
+      'totalPages': 24,
+      'source': 'TACO',
+      'sourceVersion': '4ª edição',
+      'items': [
+        {
+          'id': 1,
+          'sourceCode': '1',
+          'source': 'TACO',
+          'sourceVersion': '4ª edição',
+          'description': 'Arroz, integral, cozido',
+          'baseName': 'Arroz',
+          'preparation': 'cozido',
+          'qualifiers': 'integral',
+          'category': 'Cereais e derivados',
+          'per100Grams': {
+            'energyKcal': 128.0,
+            'proteinGrams': 2.6,
+            'carbohydrateGrams': 25.8,
+            'fatGrams': 1.0,
+            'fiberGrams': 2.7,
+            'sodiumMilligrams': 1.0,
+          },
+        },
+      ],
+    });
+
+    expect(page.total, 597);
+    expect(page.totalPages, 24);
+    expect(page.items.single.description, 'Arroz, integral, cozido');
+    expect(page.items.single.preparation, 'cozido');
+  });
+
+  test('scales nutrients from 100 grams to the quantity used', () {
+    const nutrients = Nutrients(
+      energyKcal: 128,
+      proteinGrams: 2.6,
+      carbohydrateGrams: 25.8,
+      fatGrams: 1,
+      fiberGrams: 2.7,
+    );
+
+    final result = nutrients.scaledTo(130);
+
+    expect(result.energyKcal, closeTo(166.4, 0.0001));
+    expect(result.proteinGrams, closeTo(3.38, 0.0001));
+    expect(result.carbohydrateGrams, closeTo(33.54, 0.0001));
+    expect(result.fatGrams, closeTo(1.3, 0.0001));
+    expect(result.fiberGrams, closeTo(3.51, 0.0001));
+    expect(result.sodiumMilligrams, isNull);
+  });
+
 }
