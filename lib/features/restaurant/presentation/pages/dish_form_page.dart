@@ -45,13 +45,19 @@ class _DishFormPageState extends State<DishFormPage> {
       text: dish?.price.toStringAsFixed(2),
     );
     _protein = TextEditingController(
-      text: dish?.proteinGrams.toString(),
+      text: dish == null ? null : _format(dish.proteinGrams),
     );
     _carbohydrate = TextEditingController(
-      text: dish?.carbohydrateGrams.toString(),
+      text: dish == null
+          ? null
+          : _format(dish.carbohydrateGrams),
     );
-    _fat = TextEditingController(text: dish?.fatGrams.toString());
-    _fiber = TextEditingController(text: dish?.fiberGrams.toString());
+    _fat = TextEditingController(
+      text: dish == null ? null : _format(dish.fatGrams),
+    );
+    _fiber = TextEditingController(
+      text: dish == null ? null : _format(dish.fiberGrams),
+    );
     _automaticFromRecipes = dish != null &&
         (dish.recipeComponents.isNotEmpty ||
             dish.foodComponents.isNotEmpty);
@@ -760,7 +766,7 @@ class _NutritionSummary extends StatelessWidget {
 }
 
 String _requestNumber(double? value) =>
-    (value ?? 0).toStringAsFixed(6);
+    (value ?? 0).toStringAsFixed(2);
 
 String _format(double? value) {
   if (value == null) return 'não informado';
