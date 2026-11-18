@@ -198,6 +198,91 @@ class _DishFormPageState extends State<DishFormPage> {
     _syncRecipeNutrition();
   }
 
+
+  Future<void> _addFood() async {
+    final catalogSelection = await Navigator.of(context)
+        .push<NutritionalFoodSelection>(
+      MaterialPageRoute(
+        builder: (_) => const NutritionalCatalogPage(
+          selectionMode: true,
+        ),
+      ),
+    );
+    if (catalogSelection == null || !mounted) return;
+    final selection = DishFoodSelection.fromCatalog(
+      catalogSelection,
+    );
+    final index = _foodComponents.indexWhere(
+      (item) =>
+          item.nutritionalFoodId == selection.nutritionalFoodId,
+    );
+    setState(() {
+      if (index < 0) {
+        _foodComponents.add(selection);
+      } else {
+        final existing = _foodComponents[index];
+        _foodComponents[index] = existing.copyWith(
+          quantityGrams:
+              existing.quantityGrams + selection.quantityGrams,
+        );
+      }
+    });
+    _syncRecipeNutrition();
+  }
+
+  Future<void> _editFoodQuantity(int index) async {
+    final component = _foodComponents[index];
+    final controller = TextEditingController(
+      text: _format(component.quantityGrams),
+    );
+    final quantity = await showDialog<double>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(component.foodName),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(
+            decimal: true,
+          ),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+          ],
+          decoration: const InputDecoration(
+            labelText: 'Quantidade usada no prato',
+            suffixText: 'g',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final parsed = double.tryParse(
+                controller.text.replaceAll(',', '.'),
+              );
+              Navigator.of(dialogContext).pop(
+                parsed != null && parsed > 0 ? parsed : null,
+              );
+            },
+            child: const Text('Atualizar'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (quantity == null || !mounted) return;
+    setState(() {
+      _foodComponents[index] = component.copyWith(
+        quantityGrams: quantity,
+      );
+    });
+    _syncRecipeNutrition();
+  }
+
   Future<void> _editRecipeQuantity(int index) async {
     final component = _recipeComponents[index];
     final controller = TextEditingController(
@@ -253,6 +338,11 @@ class _DishFormPageState extends State<DishFormPage> {
 
   void _removeRecipe(int index) {
     setState(() => _recipeComponents.removeAt(index));
+    _syncRecipeNutrition();
+  }
+
+  void _removeFood(int index) {
+    setState(() => _foodComponents.removeAt(index));
     _syncRecipeNutrition();
   }
 
