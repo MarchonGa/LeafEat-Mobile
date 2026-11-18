@@ -7,6 +7,7 @@ import 'package:leafeat_mobile/features/establishments/domain/models/dish.dart';
 import 'package:leafeat_mobile/features/restaurant/data/nutritional_food.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_recipe.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_repository.dart';
+import 'package:leafeat_mobile/features/restaurant/presentation/pages/nutritional_catalog_page.dart';
 import 'package:leafeat_mobile/features/restaurant/presentation/pages/restaurant_recipes_page.dart';
 
 class DishFormPage extends StatefulWidget {
@@ -28,6 +29,7 @@ class _DishFormPageState extends State<DishFormPage> {
   late final TextEditingController _fat;
   late final TextEditingController _fiber;
   final List<DishRecipeSelection> _recipeComponents = [];
+  final List<DishFoodSelection> _foodComponents = [];
   late bool _automaticFromRecipes;
   late bool _isVegan;
   late bool _isLactoseFree;
@@ -50,7 +52,9 @@ class _DishFormPageState extends State<DishFormPage> {
     );
     _fat = TextEditingController(text: dish?.fatGrams.toString());
     _fiber = TextEditingController(text: dish?.fiberGrams.toString());
-    _automaticFromRecipes = dish?.recipeComponents.isNotEmpty ?? false;
+    _automaticFromRecipes = dish != null &&
+        (dish.recipeComponents.isNotEmpty ||
+            dish.foodComponents.isNotEmpty);
     _isVegan = dish?.isVegan ?? false;
     _isLactoseFree = dish?.isLactoseFree ?? false;
 
@@ -60,6 +64,24 @@ class _DishFormPageState extends State<DishFormPage> {
           DishRecipeSelection(
             recipeId: component.recipeId,
             recipeName: component.recipeName,
+            quantityGrams: component.quantityGrams,
+            per100Grams: Nutrients(
+              energyKcal: component.energyKcal,
+              proteinGrams: component.proteinGrams,
+              carbohydrateGrams: component.carbohydrateGrams,
+              fatGrams: component.fatGrams,
+              fiberGrams: component.fiberGrams,
+              sodiumMilligrams: component.sodiumMilligrams,
+            ),
+          ),
+        );
+      }
+      for (final component in dish.foodComponents) {
+        _foodComponents.add(
+          DishFoodSelection(
+            nutritionalFoodId: component.nutritionalFoodId,
+            foodName: component.foodName,
+            preparation: component.preparation,
             quantityGrams: component.quantityGrams,
             per100Grams: Nutrients(
               energyKcal: component.energyKcal,
@@ -107,28 +129,33 @@ class _DishFormPageState extends State<DishFormPage> {
         fatGrams: _numberOrZero(_fat),
       );
 
-  Nutrients get _recipeTotal => Nutrients(
-        energyKcal: _sumRecipe((item) => item.energyKcal),
-        proteinGrams: _sumRecipe((item) => item.proteinGrams),
+  Nutrients get _componentTotal => Nutrients(
+        energyKcal: _sumComponents((item) => item.energyKcal),
+        proteinGrams: _sumComponents((item) => item.proteinGrams),
         carbohydrateGrams:
-            _sumRecipe((item) => item.carbohydrateGrams),
-        fatGrams: _sumRecipe((item) => item.fatGrams),
-        fiberGrams: _sumRecipe((item) => item.fiberGrams),
+            _sumComponents((item) => item.carbohydrateGrams),
+        fatGrams: _sumComponents((item) => item.fatGrams),
+        fiberGrams: _sumComponents((item) => item.fiberGrams),
         sodiumMilligrams:
-            _sumRecipe((item) => item.sodiumMilligrams),
+            _sumComponents((item) => item.sodiumMilligrams),
       );
 
-  double? _sumRecipe(double? Function(Nutrients) selector) {
-    final known = _recipeComponents
-        .where((item) => selector(item.per100Grams) != null)
-        .toList();
-    if (known.isEmpty) return null;
-    return known.fold<double>(
-      0,
-      (total, item) =>
-          total +
-          selector(item.per100Grams)! * item.quantityGrams / 100,
-    );
+  double? _sumComponents(double? Function(Nutrients) selector) {
+    var hasKnownValue = false;
+    var total = 0.0;
+    for (final component in _recipeComponents) {
+      final value = selector(component.per100Grams);
+      if (value == null) continue;
+      hasKnownValue = true;
+      total += value * component.quantityGrams / 100;
+    }
+    for (final component in _foodComponents) {
+      final value = selector(component.per100Grams);
+      if (value == null) continue;
+      hasKnownValue = true;
+      total += value * component.quantityGrams / 100;
+    }
+    return hasKnownValue ? total : null;
   }
 
   void _updateCalories() {
@@ -136,7 +163,7 @@ class _DishFormPageState extends State<DishFormPage> {
   }
 
   void _syncRecipeNutrition() {
-    final total = _recipeTotal;
+    final total = _componentTotal;
     _protein.text = _requestNumber(total.proteinGrams);
     _carbohydrate.text = _requestNumber(total.carbohydrateGrams);
     _fat.text = _requestNumber(total.fatGrams);
@@ -245,15 +272,22 @@ class _DishFormPageState extends State<DishFormPage> {
                 .map((item) => item.toRequestJson())
                 .toList()
             : <Map<String, dynamic>>[],
+        'foodComponents': _automaticFromRecipes
+            ? _foodComponents
+                .map((item) => item.toRequestJson())
+                .toList()
+            : <Map<String, dynamic>>[],
       };
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_automaticFromRecipes && _recipeComponents.isEmpty) {
+    if (_automaticFromRecipes &&
+        _recipeComponents.isEmpty &&
+        _foodComponents.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Adicione pelo menos uma receita ao prato.',
+            'Adicione uma receita ou um alimento ao prato.',
           ),
         ),
       );
@@ -318,7 +352,7 @@ class _DishFormPageState extends State<DishFormPage> {
   @override
   Widget build(BuildContext context) {
     final editing = widget.dish != null;
-    final recipeTotal = _recipeTotal;
+    final componentTotal = _componentTotal;
     return Scaffold(
       appBar: AppBar(
         title: Text(editing ? 'Editar prato' : 'Novo prato'),
@@ -426,7 +460,7 @@ class _DishFormPageState extends State<DishFormPage> {
                       ),
                     ),
                   ),
-              _NutritionSummary(nutrients: recipeTotal),
+              _NutritionSummary(nutrients: componentTotal),
             ] else ...[
               Card(
                 child: ListTile(
