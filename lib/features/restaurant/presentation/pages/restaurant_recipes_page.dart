@@ -205,8 +205,13 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
               ],
               const SizedBox(height: 14),
               Text(
-                'Ingredientes: ${_format(recipe.rawIngredientsWeightGrams)} g '
-                '• Peso pronto: ${_format(recipe.finalWeightGrams)} g',
+                recipe.isLabel
+                    ? 'Dados do rótulo • Porção de referência: '
+                        '${_format(recipe.referenceServingGrams)} g'
+                    : 'Ingredientes: '
+                        '${_format(recipe.rawIngredientsWeightGrams)} g '
+                        '• Peso pronto: '
+                        '${_format(recipe.finalWeightGrams)} g',
               ),
               const SizedBox(height: 10),
               Text(
@@ -217,21 +222,24 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
                 '${_format(recipe.per100Grams.fiberGrams)} g fibras',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
-              const Divider(height: 28),
-              Text(
-                'Composição',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              for (final ingredient in recipe.ingredients)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.rice_bowl_outlined),
-                  title: Text(ingredient.description),
-                  subtitle: Text(ingredient.category),
-                  trailing: Text(
-                    '${_format(ingredient.quantityGrams)} g',
-                  ),
+              if (!recipe.isLabel) ...[
+                const Divider(height: 28),
+                Text(
+                  'Composição',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
+                for (final ingredient in recipe.ingredients)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading:
+                        const Icon(Icons.rice_bowl_outlined),
+                    title: Text(ingredient.description),
+                    subtitle: Text(ingredient.category),
+                    trailing: Text(
+                      '${_format(ingredient.quantityGrams)} g',
+                    ),
+                  ),
+              ],
             ],
           ),
         ),
@@ -308,9 +316,17 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
                           ),
                           title: Text(recipe.name),
                           subtitle: Text(
-                            '${recipe.ingredients.length} ingredientes • '
-                            '${_format(recipe.finalWeightGrams)} g prontos • '
-                            '${_format(recipe.per100Grams.energyKcal)} kcal/100 g',
+                            recipe.isLabel
+                                ? 'Rótulo • '
+                                    '${_format(recipe.referenceServingGrams)} g '
+                                    'por porção • '
+                                    '${_format(recipe.per100Grams.energyKcal)} '
+                                    'kcal/100 g'
+                                : '${recipe.ingredients.length} ingredientes • '
+                                    '${_format(recipe.finalWeightGrams)} g '
+                                    'prontos • '
+                                    '${_format(recipe.per100Grams.energyKcal)} '
+                                    'kcal/100 g',
                           ),
                           trailing: widget.selectionMode
                               ? const Icon(Icons.add_circle_outline)
