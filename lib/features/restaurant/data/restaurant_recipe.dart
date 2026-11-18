@@ -27,8 +27,10 @@ class RestaurantRecipe {
     required this.establishmentId,
     required this.name,
     required this.description,
+    required this.calculationMode,
     required this.rawIngredientsWeightGrams,
     required this.finalWeightGrams,
+    required this.referenceServingGrams,
     required this.createdAt,
     required this.total,
     required this.per100Grams,
@@ -39,12 +41,16 @@ class RestaurantRecipe {
   final String establishmentId;
   final String name;
   final String description;
+  final String calculationMode;
   final double rawIngredientsWeightGrams;
   final double finalWeightGrams;
+  final double? referenceServingGrams;
   final DateTime createdAt;
   final Nutrients total;
   final Nutrients per100Grams;
   final List<RecipeIngredient> ingredients;
+
+  bool get isLabel => calculationMode == 'Label';
 
   factory RestaurantRecipe.fromJson(Map<String, dynamic> json) {
     final rawIngredients = json['ingredients'];
@@ -53,10 +59,14 @@ class RestaurantRecipe {
       establishmentId: json['establishmentId']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
+      calculationMode:
+          json['calculationMode']?.toString() ?? 'Taco',
       rawIngredientsWeightGrams:
           (json['rawIngredientsWeightGrams'] as num?)?.toDouble() ?? 0,
       finalWeightGrams:
           (json['finalWeightGrams'] as num?)?.toDouble() ?? 0,
+      referenceServingGrams:
+          (json['referenceServingGrams'] as num?)?.toDouble(),
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
       total: Nutrients.fromJson(
