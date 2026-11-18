@@ -38,4 +38,5 @@ No emulador Android, o computador normalmente é acessado por `http://10.0.2.2:5
 
 QR Code, mapa real e auditoria não fazem parte desta etapa.
 - Área do restaurante com catálogo nutricional TACO, busca paginada e cálculo proporcional por gramas.
-- Restaurante pode montar e salvar receitas da casa com múltiplos ingredientes da TACO, quantidades em gramas e peso final preparado.
+- restaurante pode cadastrar itens personalizados montados com alimentos da TACO ou informados por rótulo nutricional;
+- avaliações públicas respeitam a identidade escolhida pelo cliente e permitem votos de útil ou não útil sem alterar a média de estrelas.
