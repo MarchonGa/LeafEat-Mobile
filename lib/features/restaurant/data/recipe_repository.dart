@@ -7,7 +7,9 @@ class RecipeRepository {
   final ApiClient _apiClient;
   final String _token;
 
-  Future<List<RestaurantRecipe>> list(String establishmentId) async {
+  Future<List<RestaurantRecipe>> list(
+    String establishmentId,
+  ) async {
     final data = await _apiClient.get(
       '/api/establishments/$establishmentId/recipes',
       token: _token,
@@ -22,8 +24,10 @@ class RecipeRepository {
     required String establishmentId,
     required String name,
     required String description,
+    required String calculationMode,
     required double finalWeightGrams,
     required List<NutritionalFoodSelection> ingredients,
+    Map<String, dynamic>? manualNutrition,
   }) async {
     final data = await _apiClient.post(
       '/api/establishments/$establishmentId/recipes',
@@ -31,12 +35,17 @@ class RecipeRepository {
       body: {
         'name': name,
         'description': description,
+        'calculationMode': calculationMode,
         'finalWeightGrams': finalWeightGrams,
-        'ingredients':
-            ingredients.map((item) => item.toRequestJson()).toList(),
+        'ingredients': ingredients
+            .map((item) => item.toRequestJson())
+            .toList(),
+        'manualNutrition': manualNutrition,
       },
     );
-    return RestaurantRecipe.fromJson(data as Map<String, dynamic>);
+    return RestaurantRecipe.fromJson(
+      data as Map<String, dynamic>,
+    );
   }
 
   Future<void> delete({
