@@ -14,6 +14,7 @@ class Dish {
     required this.isVegan,
     required this.isLactoseFree,
     this.hasNutritionInformation = true,
+    this.recipeComponents = const [],
     this.reviews = const [],
   });
 
@@ -31,6 +32,11 @@ class Dish {
         isLactoseFree: json['isLactoseFree'] as bool,
         hasNutritionInformation:
             json['hasNutritionInformation'] as bool? ?? true,
+        recipeComponents: (json['recipeComponents'] as List<dynamic>?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(DishRecipeComponent.fromJson)
+                .toList(growable: false) ??
+            const [],
       );
 
   final String id;
@@ -45,6 +51,7 @@ class Dish {
   final bool isVegan;
   final bool isLactoseFree;
   final bool hasNutritionInformation;
+  final List<DishRecipeComponent> recipeComponents;
   final List<Review> reviews;
 
   static int calculateCalories({
@@ -59,5 +66,53 @@ class Dish {
     if (reviews.isEmpty) return 0;
     final total = reviews.fold<double>(0, (sum, review) => sum + review.rating);
     return total / reviews.length;
+  }
+}
+
+
+class DishRecipeComponent {
+  const DishRecipeComponent({
+    required this.id,
+    required this.recipeId,
+    required this.recipeName,
+    required this.quantityGrams,
+    required this.energyKcal,
+    required this.proteinGrams,
+    required this.carbohydrateGrams,
+    required this.fatGrams,
+    required this.fiberGrams,
+    required this.sodiumMilligrams,
+  });
+
+  final String id;
+  final String recipeId;
+  final String recipeName;
+  final double quantityGrams;
+  final double? energyKcal;
+  final double? proteinGrams;
+  final double? carbohydrateGrams;
+  final double? fatGrams;
+  final double? fiberGrams;
+  final double? sodiumMilligrams;
+
+  factory DishRecipeComponent.fromJson(Map<String, dynamic> json) {
+    final values = json['per100Grams'] is Map<String, dynamic>
+        ? json['per100Grams'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+    return DishRecipeComponent(
+      id: json['id']?.toString() ?? '',
+      recipeId: json['recipeId']?.toString() ?? '',
+      recipeName: json['recipeName']?.toString() ?? '',
+      quantityGrams:
+          (json['quantityGrams'] as num?)?.toDouble() ?? 0,
+      energyKcal: (values['energyKcal'] as num?)?.toDouble(),
+      proteinGrams: (values['proteinGrams'] as num?)?.toDouble(),
+      carbohydrateGrams:
+          (values['carbohydrateGrams'] as num?)?.toDouble(),
+      fatGrams: (values['fatGrams'] as num?)?.toDouble(),
+      fiberGrams: (values['fiberGrams'] as num?)?.toDouble(),
+      sodiumMilligrams:
+          (values['sodiumMilligrams'] as num?)?.toDouble(),
+    );
   }
 }
