@@ -183,9 +183,9 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
                       leading: const CircleAvatar(
                         child: Icon(Icons.menu_book_outlined),
                       ),
-                      title: const Text('Receitas da casa'),
+                      title: const Text('Itens personalizados'),
                       subtitle: const Text(
-                        'Monte preparos com vários ingredientes da TACO e '
+                        'Cadastre itens com vários ingredientes da TACO e '
                         'salve o cálculo nutricional.',
                       ),
                       trailing: const Icon(Icons.chevron_right),
@@ -204,7 +204,7 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
                       title: const Text('Catálogo nutricional'),
                       subtitle: const Text(
                         'Busque alimentos da TACO e calcule os valores pela '
-                        'quantidade usada na receita.',
+                        'quantidade usada no item.',
                       ),
                       trailing: const Icon(Icons.chevron_right),
                     ),
