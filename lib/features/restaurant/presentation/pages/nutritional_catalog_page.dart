@@ -389,7 +389,7 @@ class _NutrientCard extends StatelessWidget {
 
 String _format(double? value) {
   if (value == null) return 'Não informado';
-  if (value.abs() <= 0.00001) return 'Traço';
+  if (value != 0 && value.abs() <= 0.0001) return 'Traço';
   final text = value.toStringAsFixed(2);
   return text
       .replaceFirst(RegExp(r'\.00$'), '')
