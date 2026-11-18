@@ -122,3 +122,42 @@ class RecipeIngredient {
         ),
       );
 }
+
+class DishRecipeSelection {
+  const DishRecipeSelection({
+    required this.recipeId,
+    required this.recipeName,
+    required this.quantityGrams,
+    required this.per100Grams,
+  });
+
+  final String recipeId;
+  final String recipeName;
+  final double quantityGrams;
+  final Nutrients per100Grams;
+
+  factory DishRecipeSelection.fromRecipe(
+    RestaurantRecipe recipe,
+    double quantityGrams,
+  ) =>
+      DishRecipeSelection(
+        recipeId: recipe.id,
+        recipeName: recipe.name,
+        quantityGrams: quantityGrams,
+        per100Grams: recipe.per100Grams,
+      );
+
+  DishRecipeSelection copyWith({double? quantityGrams}) =>
+      DishRecipeSelection(
+        recipeId: recipeId,
+        recipeName: recipeName,
+        quantityGrams: quantityGrams ?? this.quantityGrams,
+        per100Grams: per100Grams,
+      );
+
+  Map<String, dynamic> toRequestJson() => {
+        'recipeId': recipeId,
+        'quantityGrams': quantityGrams,
+      };
+}
+
