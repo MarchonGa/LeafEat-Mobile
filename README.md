@@ -37,3 +37,4 @@ No emulador Android, o computador normalmente é acessado por `http://10.0.2.2:5
 - mocks preservados como fallback quando a API estiver indisponível.
 
 QR Code, mapa real e auditoria não fazem parte desta etapa.
+- Área do restaurante com catálogo nutricional TACO, busca paginada e cálculo proporcional por gramas.
