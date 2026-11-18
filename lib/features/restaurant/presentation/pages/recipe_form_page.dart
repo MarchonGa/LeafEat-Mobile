@@ -39,6 +39,16 @@ class _RecipeFormPageState extends State<RecipeFormPage> {
         (total, item) => total + item.quantityGrams,
       );
 
+  bool get _hasIncompleteNutrition => _ingredients.any((item) {
+        final nutrients = item.food.per100Grams;
+        return nutrients.energyKcal == null ||
+            nutrients.proteinGrams == null ||
+            nutrients.carbohydrateGrams == null ||
+            nutrients.fatGrams == null ||
+            nutrients.fiberGrams == null ||
+            nutrients.sodiumMilligrams == null;
+      });
+
   Nutrients get _total => Nutrients(
         energyKcal: _sum((item) => item.energyKcal),
         proteinGrams: _sum((item) => item.proteinGrams),
@@ -64,12 +74,11 @@ class _RecipeFormPageState extends State<RecipeFormPage> {
   }
 
   double? _sum(double? Function(Nutrients) selector) {
-    if (_ingredients.any(
-      (item) => selector(item.food.per100Grams) == null,
-    )) {
-      return null;
-    }
-    return _ingredients.fold<double>(
+    final known = _ingredients
+        .where((item) => selector(item.food.per100Grams) != null)
+        .toList();
+    if (known.isEmpty) return null;
+    return known.fold<double>(
       0,
       (total, item) =>
           total +
@@ -324,6 +333,21 @@ class _RecipeFormPageState extends State<RecipeFormPage> {
               },
             ),
             const SizedBox(height: 20),
+            if (_hasIncompleteNutrition) ...[
+              Card(
+                color: Theme.of(context).colorScheme.tertiaryContainer,
+                child: const ListTile(
+                  leading: Icon(Icons.info_outline),
+                  title: Text('Estimativa nutricional parcial'),
+                  subtitle: Text(
+                    'Alguns ingredientes não possuem todos os nutrientes '
+                    'informados na TACO. Os valores conhecidos foram somados, '
+                    'mas o total real pode ser maior.',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             _NutritionSummary(
               title: 'Total da receita',
               nutrients: total,
