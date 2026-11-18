@@ -4,9 +4,15 @@ import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
 import 'package:leafeat_mobile/features/restaurant/data/nutritional_catalog_repository.dart';
 import 'package:leafeat_mobile/features/restaurant/data/nutritional_food.dart';
+import 'package:leafeat_mobile/features/restaurant/data/restaurant_recipe.dart';
 
 class NutritionalCatalogPage extends StatefulWidget {
-  const NutritionalCatalogPage({super.key});
+  const NutritionalCatalogPage({
+    this.selectionMode = false,
+    super.key,
+  });
+
+  final bool selectionMode;
 
   @override
   State<NutritionalCatalogPage> createState() => _NutritionalCatalogPageState();
@@ -87,7 +93,7 @@ class _NutritionalCatalogPageState extends State<NutritionalCatalogPage> {
   Future<void> _showCalculation(NutritionalFood food) async {
     final controller = TextEditingController(text: '100');
     var grams = 100.0;
-    await showModalBottomSheet<void>(
+    final selection = await showModalBottomSheet<NutritionalFoodSelection>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
@@ -187,6 +193,21 @@ class _NutritionalCatalogPageState extends State<NutritionalCatalogPage> {
                         'de quantificação da tabela, não ausência comprovada.',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
+                      if (widget.selectionMode) ...[
+                        const SizedBox(height: 18),
+                        FilledButton.icon(
+                          onPressed: grams > 0
+                              ? () => Navigator.of(sheetContext).pop(
+                                    NutritionalFoodSelection(
+                                      food: food,
+                                      quantityGrams: grams,
+                                    ),
+                                  )
+                              : null,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Adicionar à receita'),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -197,13 +218,16 @@ class _NutritionalCatalogPageState extends State<NutritionalCatalogPage> {
       ),
     );
     controller.dispose();
+    if (selection != null && widget.selectionMode && mounted) {
+      Navigator.of(context).pop(selection);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Catálogo nutricional'),
+        title: Text(widget.selectionMode ? 'Escolher ingrediente' : 'Catálogo nutricional'),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
       ),
@@ -214,8 +238,11 @@ class _NutritionalCatalogPageState extends State<NutritionalCatalogPage> {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              'Consulte alimentos da TACO e calcule os nutrientes para a '
-              'quantidade realmente usada na receita.',
+              widget.selectionMode
+                  ? 'Pesquise um alimento, informe a quantidade usada e '
+                      'adicione-o à receita.'
+                  : 'Consulte alimentos da TACO e calcule os nutrientes para '
+                      'a quantidade realmente usada na receita.',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 14),
