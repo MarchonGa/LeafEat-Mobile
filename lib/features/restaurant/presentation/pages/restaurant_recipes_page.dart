@@ -279,7 +279,7 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
 
 String _format(double? value) {
   if (value == null) return 'não informado';
-  if (value.abs() <= 0.00001) return 'traço';
+  if (value != 0 && value.abs() <= 0.0001) return 'traço';
   return value
       .toStringAsFixed(2)
       .replaceFirst(RegExp(r'\.00$'), '')
