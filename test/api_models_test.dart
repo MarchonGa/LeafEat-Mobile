@@ -208,4 +208,58 @@ void main() {
     });
   });
 
+
+  test('maps a house recipe used as a dish component', () {
+    final dish = Dish.fromJson({
+      'id': 'dish-id',
+      'name': 'Prato executivo',
+      'description': 'Arroz e acompanhamento',
+      'price': 25.0,
+      'calories': 311,
+      'proteinGrams': 6.04,
+      'carbohydrateGrams': 62.42,
+      'fatGrams': 3.36,
+      'fiberGrams': 2.0,
+      'isVegan': false,
+      'isLactoseFree': true,
+      'hasNutritionInformation': true,
+      'recipeComponents': [
+        {
+          'id': 'component-id',
+          'recipeId': 'recipe-id',
+          'recipeName': 'Arroz ao alho',
+          'quantityGrams': 200.0,
+          'per100Grams': {
+            'energyKcal': 155.56,
+            'proteinGrams': 3.02,
+            'carbohydrateGrams': 31.21,
+            'fatGrams': 1.68,
+            'fiberGrams': 1.0,
+          },
+          'contribution': {
+            'energyKcal': 311.12,
+          },
+        },
+      ],
+    });
+
+    expect(dish.recipeComponents.single.recipeName, 'Arroz ao alho');
+    expect(dish.recipeComponents.single.quantityGrams, 200);
+    expect(dish.recipeComponents.single.fatGrams, 1.68);
+  });
+
+  test('creates payload for a recipe portion used in a dish', () {
+    const selection = DishRecipeSelection(
+      recipeId: 'recipe-id',
+      recipeName: 'Arroz ao alho',
+      quantityGrams: 200,
+      per100Grams: Nutrients(energyKcal: 155.56),
+    );
+
+    expect(selection.toRequestJson(), {
+      'recipeId': 'recipe-id',
+      'quantityGrams': 200.0,
+    });
+  });
+
 }
