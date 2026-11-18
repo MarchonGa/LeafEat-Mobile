@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
 import 'package:leafeat_mobile/features/restaurant/data/recipe_repository.dart';
@@ -6,7 +7,12 @@ import 'package:leafeat_mobile/features/restaurant/data/restaurant_recipe.dart';
 import 'package:leafeat_mobile/features/restaurant/presentation/pages/recipe_form_page.dart';
 
 class RestaurantRecipesPage extends StatefulWidget {
-  const RestaurantRecipesPage({super.key});
+  const RestaurantRecipesPage({
+    this.selectionMode = false,
+    super.key,
+  });
+
+  final bool selectionMode;
 
   @override
   State<RestaurantRecipesPage> createState() =>
@@ -127,6 +133,54 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
     }
   }
 
+
+  Future<void> _selectRecipe(RestaurantRecipe recipe) async {
+    final controller = TextEditingController(text: '100');
+    final quantity = await showDialog<double>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(recipe.name),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(
+            decimal: true,
+          ),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+          ],
+          decoration: const InputDecoration(
+            labelText: 'Quantidade usada no prato',
+            suffixText: 'g',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final parsed = double.tryParse(
+                controller.text.replaceAll(',', '.'),
+              );
+              Navigator.of(dialogContext).pop(
+                parsed != null && parsed > 0 ? parsed : null,
+              );
+            },
+            child: const Text('Adicionar ao prato'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (quantity == null || !mounted) return;
+    Navigator.of(context).pop(
+      DishRecipeSelection.fromRecipe(recipe, quantity),
+    );
+  }
+
   void _showDetails(RestaurantRecipe recipe) {
     showModalBottomSheet<void>(
       context: context,
@@ -156,9 +210,11 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Por 100 g: ${_format(recipe.per100Grams.energyKcal)} kcal • '
+                'Por 100 g: ${_format(recipe.per100Grams.energyKcal)} kcal\n'
                 '${_format(recipe.per100Grams.proteinGrams)} g proteínas • '
-                '${_format(recipe.per100Grams.carbohydrateGrams)} g carboidratos',
+                '${_format(recipe.per100Grams.carbohydrateGrams)} g carboidratos\n'
+                '${_format(recipe.per100Grams.fatGrams)} g lipídios • '
+                '${_format(recipe.per100Grams.fiberGrams)} g fibras',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const Divider(height: 28),
@@ -187,7 +243,7 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Receitas da casa'),
+        title: Text(widget.selectionMode ? 'Escolher receita' : 'Receitas da casa'),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
         actions: [
@@ -207,8 +263,11 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
                 children: [
                   Text(
-                    'Monte preparos reutilizáveis com alimentos da TACO. '
-                    'Depois eles poderão compor diferentes pratos.',
+                    widget.selectionMode
+                        ? 'Escolha uma receita e informe quantos gramas serão '
+                            'usados no prato.'
+                        : 'Monte preparos reutilizáveis com alimentos da TACO. '
+                            'Depois eles poderão compor diferentes pratos.',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 12),
@@ -241,7 +300,9 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
                     for (final recipe in _recipes)
                       Card(
                         child: ListTile(
-                          onTap: () => _showDetails(recipe),
+                          onTap: () => widget.selectionMode
+                              ? _selectRecipe(recipe)
+                              : _showDetails(recipe),
                           leading: const CircleAvatar(
                             child: Icon(Icons.soup_kitchen_outlined),
                           ),
@@ -251,7 +312,9 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
                             '${_format(recipe.finalWeightGrams)} g prontos • '
                             '${_format(recipe.per100Grams.energyKcal)} kcal/100 g',
                           ),
-                          trailing: _deletingId == recipe.id
+                          trailing: widget.selectionMode
+                              ? const Icon(Icons.add_circle_outline)
+                              : _deletingId == recipe.id
                               ? const SizedBox.square(
                                   dimension: 22,
                                   child: CircularProgressIndicator(
@@ -268,11 +331,13 @@ class _RestaurantRecipesPageState extends State<RestaurantRecipesPage> {
                 ],
               ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _loading ? null : _create,
-        icon: const Icon(Icons.add),
-        label: const Text('Nova receita'),
-      ),
+      floatingActionButton: widget.selectionMode
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: _loading ? null : _create,
+              icon: const Icon(Icons.add),
+              label: const Text('Nova receita'),
+            ),
     );
   }
 }
