@@ -211,7 +211,7 @@ class _RecipeFormPageState extends State<RecipeFormPage> {
     final per100 = _per100Prepared;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nova receita'),
+        title: const Text('Novo item personalizado'),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
       ),
@@ -223,12 +223,12 @@ class _RecipeFormPageState extends State<RecipeFormPage> {
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(
-                labelText: 'Nome da receita',
-                hintText: 'Ex.: Risoto de cenoura',
+                labelText: 'Nome do item',
+                hintText: 'Ex.: Risoto de cenoura ou molho da casa',
                 border: OutlineInputBorder(),
               ),
               validator: (value) => value == null || value.trim().isEmpty
-                  ? 'Informe o nome da receita.'
+                  ? 'Informe o nome do item.'
                   : null,
             ),
             const SizedBox(height: 12),
@@ -320,7 +320,7 @@ class _RecipeFormPageState extends State<RecipeFormPage> {
                 suffixText: 'g',
                 border: OutlineInputBorder(),
                 helperText:
-                    'Pese a receita pronta, considerando água absorvida '
+                    'Pese o item pronto, considerando água absorvida '
                     'ou perdida no cozimento.',
               ),
               validator: (value) {
@@ -349,7 +349,7 @@ class _RecipeFormPageState extends State<RecipeFormPage> {
               const SizedBox(height: 8),
             ],
             _NutritionSummary(
-              title: 'Total da receita',
+              title: 'Total do item',
               nutrients: total,
             ),
             const SizedBox(height: 12),
@@ -359,13 +359,13 @@ class _RecipeFormPageState extends State<RecipeFormPage> {
                   leading: Icon(Icons.info_outline),
                   title: Text(
                     'Informe o peso final para calcular os valores '
-                    'por 100 g da receita pronta.',
+                    'por 100 g do item pronto.',
                   ),
                 ),
               )
             else
               _NutritionSummary(
-                title: 'Receita pronta — por 100 g',
+                title: 'Item pronto — por 100 g',
                 nutrients: per100,
               ),
           ],
@@ -379,7 +379,7 @@ class _RecipeFormPageState extends State<RecipeFormPage> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.save_outlined),
-        label: Text(_saving ? 'Salvando...' : 'Salvar receita'),
+        label: Text(_saving ? 'Salvando...' : 'Salvar item'),
       ),
     );
   }
