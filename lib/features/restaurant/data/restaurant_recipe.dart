@@ -161,3 +161,44 @@ class DishRecipeSelection {
       };
 }
 
+class DishFoodSelection {
+  const DishFoodSelection({
+    required this.nutritionalFoodId,
+    required this.foodName,
+    required this.quantityGrams,
+    required this.per100Grams,
+    this.preparation,
+  });
+
+  final int nutritionalFoodId;
+  final String foodName;
+  final String? preparation;
+  final double quantityGrams;
+  final Nutrients per100Grams;
+
+  factory DishFoodSelection.fromCatalog(
+    NutritionalFoodSelection selection,
+  ) =>
+      DishFoodSelection(
+        nutritionalFoodId: selection.food.id,
+        foodName: selection.food.description,
+        preparation: selection.food.preparation,
+        quantityGrams: selection.quantityGrams,
+        per100Grams: selection.food.per100Grams,
+      );
+
+  DishFoodSelection copyWith({double? quantityGrams}) =>
+      DishFoodSelection(
+        nutritionalFoodId: nutritionalFoodId,
+        foodName: foodName,
+        preparation: preparation,
+        quantityGrams: quantityGrams ?? this.quantityGrams,
+        per100Grams: per100Grams,
+      );
+
+  Map<String, dynamic> toRequestJson() => {
+        'nutritionalFoodId': nutritionalFoodId,
+        'quantityGrams': quantityGrams,
+      };
+}
+
