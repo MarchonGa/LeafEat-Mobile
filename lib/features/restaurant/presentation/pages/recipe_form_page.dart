@@ -37,6 +37,7 @@ class _RecipeFormPageState extends State<RecipeFormPage> {
   void initState() {
     super.initState();
     for (final controller in [
+      _finalWeight,
       _referenceServing,
       _energy,
       _protein,
