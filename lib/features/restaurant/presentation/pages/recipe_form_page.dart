@@ -413,6 +413,6 @@ String _formatInput(double value) => value
 
 String _format(double? value) {
   if (value == null) return 'não informado';
-  if (value.abs() <= 0.00001) return 'traço';
+  if (value != 0 && value.abs() <= 0.0001) return 'traço';
   return _formatInput(value);
 }
