@@ -572,7 +572,7 @@ class _DishFormPageState extends State<DishFormPage> {
                     padding: EdgeInsets.all(20),
                     child: Center(
                       child: Text(
-                        'Nenhuma receita adicionada.',
+                        'Nenhum componente adicionado.',
                       ),
                     ),
                   ),
