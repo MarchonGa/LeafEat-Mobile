@@ -4,6 +4,7 @@ import 'package:leafeat_mobile/features/auth/data/auth_user.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_dashboard.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_review.dart';
+import 'package:leafeat_mobile/features/restaurant/data/restaurant_recipe.dart';
 import 'package:leafeat_mobile/features/restaurant/data/nutritional_food.dart';
 
 void main() {
@@ -144,6 +145,67 @@ void main() {
     expect(result.fatGrams, closeTo(1.3, 0.0001));
     expect(result.fiberGrams, closeTo(3.51, 0.0001));
     expect(result.sodiumMilligrams, isNull);
+  });
+
+
+  test('maps a saved restaurant recipe and its ingredients', () {
+    final recipe = RestaurantRecipe.fromJson({
+      'id': 'recipe-id',
+      'establishmentId': 'establishment-id',
+      'name': 'Risoto de cenoura',
+      'description': 'Receita base da casa',
+      'rawIngredientsWeightGrams': 540.0,
+      'finalWeightGrams': 600.0,
+      'createdAt': '2026-11-18T12:00:00Z',
+      'total': {
+        'energyKcal': 503.2,
+        'proteinGrams': 11.44,
+      },
+      'per100Grams': {
+        'energyKcal': 83.866,
+        'proteinGrams': 1.906,
+      },
+      'ingredients': [
+        {
+          'id': 'ingredient-id',
+          'nutritionalFoodId': 1,
+          'description': 'Arroz, parboilizado, cru',
+          'preparation': 'cru',
+          'category': 'Cereais e derivados',
+          'quantityGrams': 340.0,
+          'per100Grams': {'energyKcal': 128.0},
+          'contribution': {'energyKcal': 435.2},
+        },
+      ],
+    });
+
+    expect(recipe.name, 'Risoto de cenoura');
+    expect(recipe.finalWeightGrams, 600);
+    expect(recipe.per100Grams.energyKcal, closeTo(83.866, 0.001));
+    expect(recipe.ingredients.single.quantityGrams, 340);
+  });
+
+  test('creates the ingredient payload selected from TACO', () {
+    final food = NutritionalFood.fromJson({
+      'id': 17,
+      'sourceCode': '17',
+      'source': 'TACO',
+      'sourceVersion': '4ª edição',
+      'description': 'Arroz, parboilizado, cru',
+      'baseName': 'Arroz',
+      'preparation': 'cru',
+      'category': 'Cereais e derivados',
+      'per100Grams': {'energyKcal': 358.0},
+    });
+    final selection = NutritionalFoodSelection(
+      food: food,
+      quantityGrams: 340,
+    );
+
+    expect(selection.toRequestJson(), {
+      'nutritionalFoodId': 17,
+      'quantityGrams': 340.0,
+    });
   });
 
 }
