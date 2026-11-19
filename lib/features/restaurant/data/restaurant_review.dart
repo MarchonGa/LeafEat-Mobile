@@ -11,11 +11,16 @@ class RestaurantReview {
     required this.createdAt,
     required this.helpfulCount,
     required this.notHelpfulCount,
+    required this.visitId,
+    required this.visitScheduledAt,
+    required this.visitConfirmedAt,
+    required this.restaurantResponse,
+    required this.responseUpdatedAt,
+    required this.internalNote,
+    required this.internalNoteUpdatedAt,
   });
 
-  factory RestaurantReview.fromJson(
-    Map<String, dynamic> json,
-  ) =>
+  factory RestaurantReview.fromJson(Map<String, dynamic> json) =>
       RestaurantReview(
         id: json['id'] as String,
         customerId: json['customerId']?.toString() ?? '',
@@ -27,11 +32,32 @@ class RestaurantReview {
         environmentRating:
             (json['environmentRating'] as num).toInt(),
         comment: json['comment'] as String,
-        createdAt: DateTime.parse(json['createdAt'] as String),
+        createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
         helpfulCount:
             (json['helpfulCount'] as num? ?? 0).toInt(),
         notHelpfulCount:
             (json['notHelpfulCount'] as num? ?? 0).toInt(),
+        visitId: json['visitId']?.toString() ?? '',
+        visitScheduledAt: DateTime.parse(
+          json['visitScheduledAt'] as String,
+        ).toLocal(),
+        visitConfirmedAt: json['visitConfirmedAt'] == null
+            ? null
+            : DateTime.parse(
+                json['visitConfirmedAt'] as String,
+              ).toLocal(),
+        restaurantResponse: json['restaurantResponse'] as String?,
+        responseUpdatedAt: json['responseUpdatedAt'] == null
+            ? null
+            : DateTime.parse(
+                json['responseUpdatedAt'] as String,
+              ).toLocal(),
+        internalNote: json['internalNote'] as String?,
+        internalNoteUpdatedAt: json['internalNoteUpdatedAt'] == null
+            ? null
+            : DateTime.parse(
+                json['internalNoteUpdatedAt'] as String,
+              ).toLocal(),
       );
 
   final String id;
@@ -45,6 +71,13 @@ class RestaurantReview {
   final DateTime createdAt;
   final int helpfulCount;
   final int notHelpfulCount;
+  final String visitId;
+  final DateTime visitScheduledAt;
+  final DateTime? visitConfirmedAt;
+  final String? restaurantResponse;
+  final DateTime? responseUpdatedAt;
+  final String? internalNote;
+  final DateTime? internalNoteUpdatedAt;
 
   double get averageRating =>
       (dishRating + environmentRating) / 2;
