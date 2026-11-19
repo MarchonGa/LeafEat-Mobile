@@ -290,11 +290,20 @@ class _DishDetailPageState extends State<DishDetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.star, color: Colors.amber),
+              Icon(
+                dish.totalReviews == 0
+                    ? Icons.star_border
+                    : Icons.star,
+                color: dish.totalReviews == 0
+                    ? Theme.of(context)
+                        .colorScheme
+                        .onSurfaceVariant
+                    : Colors.amber,
+              ),
               const SizedBox(width: 5),
               Text(
                 dish.totalReviews == 0
-                    ? 'Ainda sem avaliações'
+                    ? '–'
                     : '$rating (${dish.totalReviews} avaliações)',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
