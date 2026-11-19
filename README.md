@@ -28,7 +28,10 @@ No emulador Android, o computador normalmente é acessado por `http://10.0.2.2:5
 - painel administrativo com indicadores reais do restaurante;
 - avaliações recebidas pelo restaurante integradas à API;
 - favoritos persistidos por cliente;
+- aviso de comparecimento pelo prato, código de presença e acompanhamento em Minhas visitas;
+- avaliação liberada somente após confirmação presencial do restaurante;
 - publicação e histórico de avaliações;
+- resposta pública do restaurante e anotação operacional privada;
 - acompanhamento diário de macros, calorias e refeições externas;
 - metas nutricionais opcionais, persistentes e editáveis pelo cliente;
 - cálculo automático da meta calórica a partir dos macronutrientes;
