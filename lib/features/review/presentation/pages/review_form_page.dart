@@ -21,35 +21,40 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
   double _dishRating = 5;
   double _environmentRating = 5;
   bool _submitting = false;
+  bool _previewMode = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (_visits != null) return;
     _visit ??= widget.initialVisit;
     final session = AppSessionScope.maybeRead(context);
-    _visits ??= session == null
-        ? Future.value([
-            CustomerVisit(
-              id: 'preview-visit',
-              establishmentId: 'preview-establishment',
-              establishmentName: 'Estabelecimento',
-              dishId: 'preview-dish',
-              dishName: 'Prato',
-              confirmationCode: 'LF-000000',
-              status: 'Confirmed',
-              scheduledAt: DateTime.now(),
-              confirmedAt: DateTime.now(),
-              canReview: true,
-            ),
-          ])
-        : session.token == null
-            ? Future.value(const <CustomerVisit>[])
-            : CustomerRepository(
-            session!.apiClient,
-            session.token!,
-          ).visits().then(
-                (items) => items.where((item) => item.canReview).toList(),
-              );
+    if (session == null) {
+      final preview = CustomerVisit(
+        id: 'preview-visit',
+        establishmentId: 'preview-establishment',
+        establishmentName: 'Estabelecimento',
+        dishId: 'preview-dish',
+        dishName: 'Prato',
+        confirmationCode: 'LF-000000',
+        status: 'Confirmed',
+        scheduledAt: DateTime.now(),
+        confirmedAt: DateTime.now(),
+        canReview: true,
+      );
+      _previewMode = true;
+      _visit = preview;
+      _visits = Future.value([preview]);
+    } else if (session.token == null) {
+      _visits = Future.value(const <CustomerVisit>[]);
+    } else {
+      _visits = CustomerRepository(
+        session.apiClient,
+        session.token!,
+      ).visits().then(
+            (items) => items.where((item) => item.canReview).toList(),
+          );
+    }
   }
 
   @override
@@ -116,8 +121,10 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
       ),
       body: FutureBuilder<List<CustomerVisit>>(
         future: _visits,
+        initialData: _previewMode && _visit != null ? [_visit!] : null,
         builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
+          if (snapshot.connectionState != ConnectionState.done &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           final eligible = snapshot.data ?? const <CustomerVisit>[];
