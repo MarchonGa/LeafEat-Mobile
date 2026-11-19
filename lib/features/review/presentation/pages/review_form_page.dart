@@ -27,9 +27,24 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
     super.didChangeDependencies();
     _visit ??= widget.initialVisit;
     final session = AppSessionScope.maybeRead(context);
-    _visits ??= session?.token == null
-        ? Future.value(const <CustomerVisit>[])
-        : CustomerRepository(
+    _visits ??= session == null
+        ? Future.value([
+            CustomerVisit(
+              id: 'preview-visit',
+              establishmentId: 'preview-establishment',
+              establishmentName: 'Estabelecimento',
+              dishId: 'preview-dish',
+              dishName: 'Prato',
+              confirmationCode: 'LF-000000',
+              status: 'Confirmed',
+              scheduledAt: DateTime.now(),
+              confirmedAt: DateTime.now(),
+              canReview: true,
+            ),
+          ])
+        : session.token == null
+            ? Future.value(const <CustomerVisit>[])
+            : CustomerRepository(
             session!.apiClient,
             session.token!,
           ).visits().then(
