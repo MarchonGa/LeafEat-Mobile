@@ -39,7 +39,7 @@ class RestaurantReview {
             (json['notHelpfulCount'] as num? ?? 0).toInt(),
         visitId: json['visitId']?.toString() ?? '',
         visitScheduledAt: DateTime.parse(
-          json['visitScheduledAt'] as String,
+          (json['visitScheduledAt'] ?? json['createdAt']) as String,
         ).toLocal(),
         visitConfirmedAt: json['visitConfirmedAt'] == null
             ? null
