@@ -444,8 +444,40 @@ class _PublicReviewCard extends StatelessWidget {
                 ],
               ],
             ),
+            if (review.presenceConfirmed) ...[
+              const SizedBox(height: 8),
+              const Chip(
+                avatar: Icon(Icons.verified_user_outlined, size: 18),
+                label: Text('Presença confirmada'),
+              ),
+            ],
             const SizedBox(height: 8),
             Text(review.comment),
+            if (review.restaurantResponse != null) ...[
+              const SizedBox(height: 12),
+              Card(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Resposta oficial do restaurante',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(review.restaurantResponse!),
+                      if (review.responseUpdatedAt != null)
+                        Text(
+                          'Resposta editada',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 10),
             if (voting)
               const LinearProgressIndicator()
