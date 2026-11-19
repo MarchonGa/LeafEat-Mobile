@@ -3,6 +3,7 @@ import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_dashboard.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_repository.dart';
+import 'package:leafeat_mobile/features/restaurant/presentation/pages/restaurant_visits_page.dart';
 
 class RestaurantHomePage extends StatefulWidget {
   const RestaurantHomePage({super.key});
@@ -16,6 +17,7 @@ class _RestaurantHomePageState extends State<RestaurantHomePage> {
   bool _initialized = false;
   bool _loading = true;
   String? _error;
+  int _pendingVisits = 0;
 
   @override
   void didChangeDependencies() {
@@ -39,13 +41,20 @@ class _RestaurantHomePageState extends State<RestaurantHomePage> {
       _error = null;
     });
     try {
-      final dashboard = await RestaurantRepository(
+      final repository = RestaurantRepository(
         session.apiClient,
         session.token!,
-      ).dashboard();
+      );
+      final results = await Future.wait([
+        repository.dashboard(),
+        repository.visits(),
+      ]);
+      final dashboard = results[0] as RestaurantDashboard;
+      final visits = results[1] as List;
       if (!mounted) return;
       setState(() {
         _dashboard = dashboard;
+        _pendingVisits = visits.where((item) => item.status == 'Scheduled').length;
         _loading = false;
       });
     } catch (error) {
@@ -105,6 +114,32 @@ class _RestaurantHomePageState extends State<RestaurantHomePage> {
                       'avaliações recebidas.',
                     ),
                     const SizedBox(height: 20),
+                    Card(
+                      color: _pendingVisits > 0
+                          ? Theme.of(context).colorScheme.primaryContainer
+                          : null,
+                      child: ListTile(
+                        leading: const Icon(Icons.notifications_active_outlined),
+                        title: Text(
+                          _pendingVisits == 1
+                              ? '1 cliente pretende comparecer'
+                              : '$_pendingVisits clientes pretendem comparecer',
+                        ),
+                        subtitle: const Text(
+                          'Consulte os horários e confirme a presença com o código do cliente.',
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const RestaurantVisitsPage(),
+                            ),
+                          );
+                          if (mounted) _load();
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
