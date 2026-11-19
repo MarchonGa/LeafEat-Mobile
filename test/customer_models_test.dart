@@ -35,10 +35,16 @@ void main() {
       'environmentRating': 4,
       'comment': 'Muito bom',
       'createdAt': '2026-11-13T12:00:00Z',
+      'helpfulCount': 3,
+      'notHelpfulCount': 1,
+      'restaurantResponse': 'Obrigado pela avaliação.',
     });
 
     expect(review.averageRating, 4.5);
     expect(review.establishmentName, 'Sabor Natural');
+    expect(review.helpfulCount, 3);
+    expect(review.notHelpfulCount, 1);
+    expect(review.restaurantResponse, 'Obrigado pela avaliação.');
   });
 
   test('sums the daily nutrition entries', () {
