@@ -332,15 +332,21 @@ class _DishCard extends StatelessWidget {
               const SizedBox(height: 5),
               Row(
                 children: [
-                  const Icon(
-                    Icons.star,
-                    color: Colors.amber,
+                  Icon(
+                    dish.totalReviews == 0
+                        ? Icons.star_border
+                        : Icons.star,
+                    color: dish.totalReviews == 0
+                        ? Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant
+                        : Colors.amber,
                     size: 18,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     dish.totalReviews == 0
-                        ? 'Ainda sem avaliações'
+                        ? '–'
                         : '$rating (${dish.totalReviews})',
                   ),
                 ],
