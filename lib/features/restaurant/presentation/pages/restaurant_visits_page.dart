@@ -30,7 +30,7 @@ class _RestaurantVisitsPageState extends State<RestaurantVisitsPage> {
   void _reload() => setState(() => _future = _load());
 
   Future<void> _confirm(RestaurantVisit visit) async {
-    final controller = TextEditingController();
+    var typedCode = '';
     final code = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -41,8 +41,9 @@ class _RestaurantVisitsPageState extends State<RestaurantVisitsPage> {
             Text('${visit.customerName} — ${visit.dishName}'),
             const SizedBox(height: 12),
             TextField(
-              controller: controller,
+              autofocus: true,
               textCapitalization: TextCapitalization.characters,
+              onChanged: (value) => typedCode = value,
               decoration: const InputDecoration(
                 labelText: 'Código apresentado pelo cliente',
                 hintText: 'LF-123456',
@@ -62,22 +63,26 @@ class _RestaurantVisitsPageState extends State<RestaurantVisitsPage> {
           ),
           FilledButton(
             onPressed: () =>
-                Navigator.of(context).pop(controller.text.trim()),
+                Navigator.of(context).pop(typedCode.trim().toUpperCase()),
             child: const Text('Confirmar presença'),
           ),
         ],
       ),
     );
-    controller.dispose();
     if (code == null || code.isEmpty || !mounted) return;
     try {
       await _repository().confirmVisit(visit.id, code);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Presença confirmada.')),
+      if (!mounted) return;
+      _reload();
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Presença confirmada. A visita foi movida para o histórico e a avaliação foi liberada para o cliente.',
+            ),
+          ),
         );
-        _reload();
-      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
