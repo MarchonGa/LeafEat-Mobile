@@ -5,13 +5,18 @@ import 'package:leafeat_mobile/features/restaurant/presentation/pages/dish_form_
 import 'package:leafeat_mobile/features/review/presentation/pages/review_form_page.dart';
 
 void main() {
-  testWidgets('opens establishment filters', (tester) async {
+  testWidgets('shows nutrition search targets and dietary filters',
+      (tester) async {
     await tester.pumpWidget(const MaterialApp(home: ExplorePage()));
-    await tester.tap(find.byTooltip('Filtros'));
-    await tester.pumpAndSettle();
-    expect(find.text('Filtros e ordenação'), findsOneWidget);
-    expect(find.text('Com opção vegana'), findsOneWidget);
-    expect(find.text('Aplicar'), findsOneWidget);
+
+    expect(find.text('Qual meta você quer atingir?'), findsOneWidget);
+    expect(find.text('Calorias'), findsOneWidget);
+    expect(find.text('Proteínas'), findsOneWidget);
+    expect(find.text('Carboidratos'), findsOneWidget);
+    expect(find.text('Lipídios'), findsOneWidget);
+    expect(find.text('Somente pratos veganos'), findsOneWidget);
+    expect(find.text('Somente pratos sem lactose'), findsOneWidget);
+    expect(find.text('Buscar melhores pratos'), findsOneWidget);
   });
 
   testWidgets('shows dish creation fields and automatic calories', (tester) async {
