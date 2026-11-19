@@ -5,9 +5,14 @@ import 'package:leafeat_mobile/features/customer/data/customer_repository.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/dish.dart';
 
 class DishDetailPage extends StatefulWidget {
-  const DishDetailPage({required this.dish, super.key});
+  const DishDetailPage({
+    required this.dish,
+    this.establishmentId,
+    super.key,
+  });
 
   final Dish dish;
+  final String? establishmentId;
 
   @override
   State<DishDetailPage> createState() => _DishDetailPageState();
@@ -62,7 +67,7 @@ class _DishDetailPageState extends State<DishDetailPage> {
         session.apiClient,
         token,
       ).scheduleVisit(
-        establishmentId: dish.establishmentId,
+        establishmentId: widget.establishmentId!,
         dishId: dish.id,
         scheduledAt: scheduledAt,
       );
@@ -113,8 +118,10 @@ class _DishDetailPageState extends State<DishDetailPage> {
   @override
   Widget build(BuildContext context) {
     final session = AppSessionScope.maybeRead(context);
-    final canSchedule =
-        session?.token != null && session?.mode == UserMode.customer;
+    final canSchedule = session?.token != null &&
+        session?.mode == UserMode.customer &&
+        widget.establishmentId != null &&
+        widget.establishmentId!.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
