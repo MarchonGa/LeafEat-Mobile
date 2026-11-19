@@ -26,7 +26,11 @@ class _MyVisitsPageState extends State<MyVisitsPage> {
     return CustomerRepository(session.apiClient, session.token!).visits();
   }
 
-  void _reload() => setState(() => _future = _load());
+  void _reload() {
+    setState(() {
+      _future = _load();
+    });
+  }
 
   Future<void> _cancel(CustomerVisit visit) async {
     final confirmed = await showDialog<bool>(
