@@ -14,6 +14,8 @@ class Dish {
     required this.isVegan,
     required this.isLactoseFree,
     this.hasNutritionInformation = true,
+    this.serverAverageRating,
+    this.reviewCount = 0,
     this.recipeComponents = const [],
     this.foodComponents = const [],
     this.reviews = const [],
@@ -33,6 +35,9 @@ class Dish {
         isLactoseFree: json['isLactoseFree'] as bool,
         hasNutritionInformation:
             json['hasNutritionInformation'] as bool? ?? true,
+        serverAverageRating:
+            (json['averageRating'] as num?)?.toDouble(),
+        reviewCount: (json['reviewCount'] as num? ?? 0).toInt(),
         recipeComponents: (json['recipeComponents'] as List<dynamic>?)
                 ?.whereType<Map<String, dynamic>>()
                 .map(DishRecipeComponent.fromJson)
@@ -57,6 +62,8 @@ class Dish {
   final bool isVegan;
   final bool isLactoseFree;
   final bool hasNutritionInformation;
+  final double? serverAverageRating;
+  final int reviewCount;
   final List<DishRecipeComponent> recipeComponents;
   final List<DishFoodComponent> foodComponents;
   final List<Review> reviews;
@@ -70,10 +77,13 @@ class Dish {
   }
 
   double get averageRating {
+    if (serverAverageRating != null) return serverAverageRating!;
     if (reviews.isEmpty) return 0;
     final total = reviews.fold<double>(0, (sum, review) => sum + review.rating);
     return total / reviews.length;
   }
+
+  int get totalReviews => reviewCount > 0 ? reviewCount : reviews.length;
 }
 
 
