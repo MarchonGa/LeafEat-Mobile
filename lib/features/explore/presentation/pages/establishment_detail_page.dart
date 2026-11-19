@@ -312,7 +312,12 @@ class _EstablishmentDetailPageState extends State<EstablishmentDetailPage> {
               ),
             )
           else
-            ...establishment.dishes.map((dish) => _DishCard(dish: dish)),
+            ...establishment.dishes.map(
+              (dish) => _DishCard(
+                dish: dish,
+                establishmentId: establishment.id,
+              ),
+            ),
 
           const SizedBox(height: 26),
           Text(
@@ -524,9 +529,13 @@ class _PublicReviewCard extends StatelessWidget {
 }
 
 class _DishCard extends StatelessWidget {
-  const _DishCard({required this.dish});
+  const _DishCard({
+    required this.dish,
+    required this.establishmentId,
+  });
 
   final Dish dish;
+  final String establishmentId;
 
   @override
   Widget build(BuildContext context) {
@@ -541,7 +550,10 @@ class _DishCard extends StatelessWidget {
           child: Text('${dish.calories} kcal • R\$ ${dish.price.toStringAsFixed(2).replaceAll('.', ',')}'),
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => DishDetailPage(dish: dish))),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => DishDetailPage(
+          dish: dish,
+          establishmentId: establishmentId,
+        ))),
       ),
     );
   }
