@@ -20,6 +20,20 @@ class ReviewRepository {
         .toList();
   }
 
+  Future<List<PublicReview>> dishReviews(
+    String dishId, {
+    String? token,
+  }) async {
+    final json = await _api.get(
+      '/api/dishes/$dishId/reviews',
+      token: token,
+    );
+    return (json as List<dynamic>)
+        .whereType<Map<String, dynamic>>()
+        .map(PublicReview.fromJson)
+        .toList();
+  }
+
   Future<PublicCustomerProfile> publicProfile(
     String userId,
   ) async {
