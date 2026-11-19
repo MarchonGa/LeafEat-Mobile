@@ -1,5 +1,6 @@
 import 'package:leafeat_mobile/core/network/api_client.dart';
 import 'package:leafeat_mobile/features/customer/data/customer_review.dart';
+import 'package:leafeat_mobile/features/customer/data/customer_visit.dart';
 import 'package:leafeat_mobile/features/customer/data/food_preferences.dart';
 import 'package:leafeat_mobile/features/customer/data/nutrition_entry.dart';
 import 'package:leafeat_mobile/features/customer/data/nutrition_goals.dart';
@@ -40,6 +41,35 @@ class CustomerRepository {
 
   Future<void> removeFavorite(String establishmentId) => _api.delete(
         '/api/customer/favorites/$establishmentId', token: _token);
+
+  Future<List<CustomerVisit>> visits() async {
+    final json =
+        await _api.get('/api/customer/visits', token: _token) as List<dynamic>;
+    return json
+        .map((item) =>
+            CustomerVisit.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<CustomerVisit> scheduleVisit({
+    required String establishmentId,
+    required String dishId,
+    required DateTime scheduledAt,
+  }) async {
+    final json = await _api.post(
+      '/api/customer/visits',
+      token: _token,
+      body: {
+        'establishmentId': establishmentId,
+        'dishId': dishId,
+        'scheduledAt': scheduledAt.toUtc().toIso8601String(),
+      },
+    );
+    return CustomerVisit.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<void> cancelVisit(String id) =>
+      _api.delete('/api/customer/visits/$id', token: _token);
 
   Future<List<CustomerReview>> reviews() async {
     final json = await _api.get('/api/customer/reviews', token: _token) as List<dynamic>;
