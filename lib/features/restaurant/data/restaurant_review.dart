@@ -11,13 +11,13 @@ class RestaurantReview {
     required this.createdAt,
     required this.helpfulCount,
     required this.notHelpfulCount,
-    required this.visitId,
-    required this.visitScheduledAt,
-    required this.visitConfirmedAt,
-    required this.restaurantResponse,
-    required this.responseUpdatedAt,
-    required this.internalNote,
-    required this.internalNoteUpdatedAt,
+    this.visitId = '',
+    this.visitScheduledAt,
+    this.visitConfirmedAt,
+    this.restaurantResponse,
+    this.responseUpdatedAt,
+    this.internalNote,
+    this.internalNoteUpdatedAt,
   });
 
   factory RestaurantReview.fromJson(Map<String, dynamic> json) =>
@@ -72,7 +72,7 @@ class RestaurantReview {
   final int helpfulCount;
   final int notHelpfulCount;
   final String visitId;
-  final DateTime visitScheduledAt;
+  final DateTime? visitScheduledAt;
   final DateTime? visitConfirmedAt;
   final String? restaurantResponse;
   final DateTime? responseUpdatedAt;
