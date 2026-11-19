@@ -16,9 +16,13 @@ void main() {
       'isVegan': false,
       'isLactoseFree': true,
       'hasNutritionInformation': true,
+      'averageRating': 4.5,
+      'reviewCount': 2,
     });
 
     expect(dish.hasNutritionInformation, isTrue);
+    expect(dish.averageRating, 4.5);
+    expect(dish.totalReviews, 2);
   });
 
   test('calculates calories from macronutrients', () {
