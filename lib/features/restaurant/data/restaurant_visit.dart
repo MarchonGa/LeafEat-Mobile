@@ -24,7 +24,7 @@ class RestaurantVisit {
             json['establishmentName'] as String? ?? 'Estabelecimento',
         dishId: json['dishId'] as String,
         dishName: json['dishName'] as String? ?? 'Prato',
-        confirmationCode: json['confirmationCode'] as String,
+        confirmationCode: json['confirmationCode'] as String? ?? '',
         status: json['status'] as String,
         scheduledAt: DateTime.parse(json['scheduledAt'] as String).toLocal(),
         confirmedAt: json['confirmedAt'] == null
