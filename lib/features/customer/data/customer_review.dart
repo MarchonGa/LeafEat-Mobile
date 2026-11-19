@@ -8,6 +8,8 @@ class CustomerReview {
     required this.environmentRating,
     required this.comment,
     required this.createdAt,
+    this.helpfulCount = 0,
+    this.notHelpfulCount = 0,
     this.visitId = '',
     this.presenceConfirmed = false,
     this.restaurantResponse,
@@ -23,6 +25,8 @@ class CustomerReview {
         environmentRating: json['environmentRating'] as int,
         comment: json['comment'] as String,
         createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
+        helpfulCount: (json['helpfulCount'] as num? ?? 0).toInt(),
+        notHelpfulCount: (json['notHelpfulCount'] as num? ?? 0).toInt(),
         visitId: json['visitId']?.toString() ?? '',
         presenceConfirmed: json['presenceConfirmed'] as bool? ?? false,
         restaurantResponse: json['restaurantResponse'] as String?,
@@ -39,6 +43,8 @@ class CustomerReview {
   final int environmentRating;
   final String comment;
   final DateTime createdAt;
+  final int helpfulCount;
+  final int notHelpfulCount;
   final String visitId;
   final bool presenceConfirmed;
   final String? restaurantResponse;
