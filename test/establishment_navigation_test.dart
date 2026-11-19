@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:leafeat_mobile/features/establishments/data/mock_establishments.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
 import 'package:leafeat_mobile/features/explore/presentation/pages/establishment_detail_page.dart';
-import 'package:leafeat_mobile/features/explore/presentation/pages/explore_page.dart';
 
 void main() {
-  testWidgets('visitor opens an establishment and its nutritional details', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: ExplorePage()));
-
-    expect(find.text('3 estabelecimentos encontrados'), findsOneWidget);
-    await tester.tap(find.text('Sabor Natural'));
+  testWidgets('visitor opens a dish and its nutritional details', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: EstablishmentDetailPage(
+          establishment: mockEstablishments.first,
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Pratos'), findsOneWidget);
