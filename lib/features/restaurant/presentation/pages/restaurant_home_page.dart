@@ -45,16 +45,19 @@ class _RestaurantHomePageState extends State<RestaurantHomePage> {
         session.apiClient,
         session.token!,
       );
-      final results = await Future.wait([
-        repository.dashboard(),
-        repository.visits(),
-      ]);
-      final dashboard = results[0] as RestaurantDashboard;
-      final visits = results[1] as List;
+      final dashboard = await repository.dashboard();
+      var pendingVisits = 0;
+      try {
+        final visits = await repository.visits();
+        pendingVisits =
+            visits.where((item) => item.status == 'Scheduled').length;
+      } catch (_) {
+        // O painel principal continua disponível se o feed falhar.
+      }
       if (!mounted) return;
       setState(() {
         _dashboard = dashboard;
-        _pendingVisits = visits.where((item) => item.status == 'Scheduled').length;
+        _pendingVisits = pendingVisits;
         _loading = false;
       });
     } catch (error) {
