@@ -391,8 +391,8 @@ class _ErrorView extends StatelessWidget {
 
 class _MyReviewsData {
   const _MyReviewsData({
-    this.pending = const [],
-    this.completed = const [],
+    this.pending = const <CustomerVisit>[],
+    this.completed = const <CustomerReview>[],
   });
 
   final List<CustomerVisit> pending;
