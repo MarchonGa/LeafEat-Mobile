@@ -21,7 +21,7 @@ class ReviewPage extends StatelessWidget {
               const SizedBox(height: 24),
               const Text('Avalie sua experiência', textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              Text(isCustomer ? 'Compartilhe sua opinião sobre o prato e o ambiente.' : 'Entre como cliente para publicar avaliações.', textAlign: TextAlign.center),
+              Text(isCustomer ? 'Avalie somente visitas confirmadas pelo restaurante. Use a mesma conta que realizou o agendamento.' : 'Entre como cliente para publicar avaliações.', textAlign: TextAlign.center),
               const SizedBox(height: 28),
               FilledButton.icon(
                 onPressed: () {
@@ -32,7 +32,7 @@ class ReviewPage extends StatelessWidget {
                   Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ReviewFormPage()));
                 },
                 icon: Icon(isCustomer ? Icons.play_arrow : Icons.lock_outline),
-                label: Text(isCustomer ? 'Escrever avaliação' : 'Recurso exclusivo para clientes'),
+                label: Text(isCustomer ? 'Ver visitas liberadas para avaliação' : 'Recurso exclusivo para clientes'),
               ),
             ],
           ),
