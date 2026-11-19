@@ -14,6 +14,9 @@ class PublicReview {
     required this.notHelpfulCount,
     required this.currentUserVote,
     required this.isOwnReview,
+    required this.presenceConfirmed,
+    required this.restaurantResponse,
+    required this.responseUpdatedAt,
   });
 
   factory PublicReview.fromJson(Map<String, dynamic> json) =>
@@ -37,6 +40,11 @@ class PublicReview {
         currentUserVote:
             (json['currentUserVote'] as num?)?.toInt(),
         isOwnReview: json['isOwnReview'] as bool? ?? false,
+        presenceConfirmed: json['presenceConfirmed'] as bool? ?? false,
+        restaurantResponse: json['restaurantResponse'] as String?,
+        responseUpdatedAt: json['responseUpdatedAt'] == null
+            ? null
+            : DateTime.parse(json['responseUpdatedAt'] as String).toLocal(),
       );
 
   final String id;
@@ -53,6 +61,9 @@ class PublicReview {
   final int notHelpfulCount;
   final int? currentUserVote;
   final bool isOwnReview;
+  final bool presenceConfirmed;
+  final String? restaurantResponse;
+  final DateTime? responseUpdatedAt;
 
   double get averageRating =>
       (dishRating + environmentRating) / 2;
@@ -78,6 +89,9 @@ class PublicReview {
         currentUserVote:
             (json['currentUserVote'] as num?)?.toInt(),
         isOwnReview: isOwnReview,
+        presenceConfirmed: presenceConfirmed,
+        restaurantResponse: restaurantResponse,
+        responseUpdatedAt: responseUpdatedAt,
       );
 }
 
