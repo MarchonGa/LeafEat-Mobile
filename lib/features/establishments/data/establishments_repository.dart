@@ -1,4 +1,5 @@
 import 'package:leafeat_mobile/core/network/api_client.dart';
+import 'package:leafeat_mobile/features/establishments/data/dish_search_result.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/dish.dart';
 import 'package:leafeat_mobile/features/establishments/domain/models/establishment.dart';
 
@@ -19,6 +20,33 @@ class EstablishmentsRepository {
   Future<Establishment> detail(String id) async {
     final json = await _api.get('/api/establishments/$id');
     return Establishment.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<List<DishSearchResult>> searchDishes({
+    int? calories,
+    double? proteinGrams,
+    double? carbohydrateGrams,
+    double? fatGrams,
+    bool vegan = false,
+    bool lactoseFree = false,
+  }) async {
+    final parameters = <String, String>{
+      if (calories != null) 'calories': calories.toString(),
+      if (proteinGrams != null)
+        'proteinGrams': proteinGrams.toString(),
+      if (carbohydrateGrams != null)
+        'carbohydrateGrams': carbohydrateGrams.toString(),
+      if (fatGrams != null) 'fatGrams': fatGrams.toString(),
+      if (vegan) 'vegan': 'true',
+      if (lactoseFree) 'lactoseFree': 'true',
+    };
+    final query = Uri(queryParameters: parameters).query;
+    final json = await _api.get('/api/dishes/search?$query');
+    return (json as List<dynamic>)
+        .map((item) => DishSearchResult.fromJson(
+              item as Map<String, dynamic>,
+            ))
+        .toList(growable: false);
   }
 
   Future<Dish> createDish(String establishmentId, Map<String, dynamic> body) async {
