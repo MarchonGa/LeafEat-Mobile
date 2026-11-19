@@ -137,7 +137,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: Text(
-                  'Nenhuma visita está liberada para avaliação. Escolha um prato, avise que irá ao local e peça ao restaurante para confirmar sua presença.',
+                  'Nenhuma visita está liberada para avaliação nesta conta. Entre com a mesma conta que agendou a visita ou aguarde o restaurante confirmar sua presença.',
                   textAlign: TextAlign.center,
                 ),
               ),
