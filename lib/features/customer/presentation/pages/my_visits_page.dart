@@ -96,10 +96,23 @@ class _MyVisitsPageState extends State<MyVisitsPage> {
           }
           if (snapshot.hasError) {
             return Center(
-              child: FilledButton.icon(
-                onPressed: _reload,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Tentar novamente'),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      snapshot.error.toString(),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: _reload,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Tentar novamente'),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -154,6 +167,13 @@ class _MyVisitsPageState extends State<MyVisitsPage> {
                                     color: AppColors.primary,
                                     fontWeight: FontWeight.bold,
                                   ),
+                        ),
+                      ],
+                      if (visit.canReview) ...[
+                        const SizedBox(height: 8),
+                        const Text(
+                          'O restaurante confirmou sua presença. Esta visita já pode ser avaliada.',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
                       const SizedBox(height: 8),
