@@ -6,6 +6,7 @@ import 'package:leafeat_mobile/features/auth/presentation/pages/register_page.da
 import 'package:leafeat_mobile/features/customer/presentation/pages/favorites_page.dart';
 import 'package:leafeat_mobile/features/customer/presentation/pages/food_preferences_page.dart';
 import 'package:leafeat_mobile/features/customer/presentation/pages/my_reviews_page.dart';
+import 'package:leafeat_mobile/features/customer/presentation/pages/my_visits_page.dart';
 import 'package:leafeat_mobile/features/customer/presentation/pages/nutrition_tracking_page.dart';
 import 'package:leafeat_mobile/features/profile/presentation/pages/edit_profile_page.dart';
 
@@ -204,6 +205,8 @@ class _AccountOptions extends StatelessWidget {
         color: locked ? Theme.of(context).colorScheme.surfaceContainerHighest : null,
         child: Column(children: [
           _Option(icon: Icons.favorite_outline, title: 'Locais favoritos', subtitle: 'Salve os lugares que você mais gosta', locked: locked, onTap: () => locked ? onLockedTap?.call('seus favoritos') : open(const FavoritesPage())),
+          const Divider(height: 1),
+          _Option(icon: Icons.event_available_outlined, title: 'Minhas visitas', subtitle: 'Veja horários, códigos e presenças confirmadas', locked: locked, onTap: () => locked ? onLockedTap?.call('suas visitas') : open(const MyVisitsPage())),
           const Divider(height: 1),
           _Option(icon: Icons.history, title: 'Minhas avaliações', subtitle: 'Consulte as avaliações que você publicou', locked: locked, onTap: () => locked ? onLockedTap?.call('suas avaliações') : open(const MyReviewsPage())),
           const Divider(height: 1),
