@@ -27,7 +27,11 @@ class _RestaurantVisitsPageState extends State<RestaurantVisitsPage> {
 
   Future<List<RestaurantVisit>> _load() => _repository().visits();
 
-  void _reload() => setState(() => _future = _load());
+  void _reload() {
+    setState(() {
+      _future = _load();
+    });
+  }
 
   Future<void> _confirm(RestaurantVisit visit) async {
     var typedCode = '';
