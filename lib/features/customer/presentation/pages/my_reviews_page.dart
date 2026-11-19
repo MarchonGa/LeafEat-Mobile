@@ -47,7 +47,7 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
                 return Card(child: ListTile(
                   leading: const Icon(Icons.star, color: Colors.amber),
                   title: Text('${review.establishmentName} — $grade'),
-                  subtitle: Text('${review.dishName ?? 'Avaliação geral'}\n${review.comment}'),
+                  subtitle: Text('${review.dishName ?? 'Avaliação geral'}\n${review.comment}${review.restaurantResponse == null ? '' : '\n\nResposta do restaurante: ${review.restaurantResponse}'}'),
                   isThreeLine: true,
                 ));
               },
