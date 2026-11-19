@@ -266,7 +266,7 @@ class _ReviewCard extends StatelessWidget {
                 leading: const Icon(Icons.verified_user_outlined),
                 title: const Text('Presença confirmada'),
                 subtitle: Text(
-                  'Visita marcada para ${_date(review.visitScheduledAt)}'
+                  'Visita marcada para ${_date(review.visitScheduledAt ?? review.createdAt)}'
                   '${review.visitConfirmedAt == null ? '' : '\nConfirmada em ${_date(review.visitConfirmedAt!)}'}',
                 ),
               ),
