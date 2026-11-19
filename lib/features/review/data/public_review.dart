@@ -14,9 +14,9 @@ class PublicReview {
     required this.notHelpfulCount,
     required this.currentUserVote,
     required this.isOwnReview,
-    required this.presenceConfirmed,
-    required this.restaurantResponse,
-    required this.responseUpdatedAt,
+    this.presenceConfirmed = false,
+    this.restaurantResponse,
+    this.responseUpdatedAt,
   });
 
   factory PublicReview.fromJson(Map<String, dynamic> json) =>
