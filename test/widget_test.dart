@@ -22,10 +22,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Qual meta você quer atingir?'), findsOneWidget);
-    expect(
-      find.text('Os restaurantes aparecerão depois da busca'),
-      findsOneWidget,
-    );
+    expect(find.text('Calorias'), findsOneWidget);
+    expect(find.text('Proteínas'), findsOneWidget);
 
     await tester.tap(find.text('Avaliar'));
     await tester.pumpAndSettle();
