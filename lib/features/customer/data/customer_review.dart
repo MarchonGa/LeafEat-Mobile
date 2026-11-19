@@ -8,10 +8,10 @@ class CustomerReview {
     required this.environmentRating,
     required this.comment,
     required this.createdAt,
-    required this.visitId,
-    required this.presenceConfirmed,
-    required this.restaurantResponse,
-    required this.responseUpdatedAt,
+    this.visitId = '',
+    this.presenceConfirmed = false,
+    this.restaurantResponse,
+    this.responseUpdatedAt,
   });
 
   factory CustomerReview.fromJson(Map<String, dynamic> json) => CustomerReview(
