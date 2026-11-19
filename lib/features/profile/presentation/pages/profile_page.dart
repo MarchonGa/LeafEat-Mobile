@@ -255,6 +255,26 @@ class _ModeSwitcher extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final session = AppSessionScope.watch(context);
+
+    void selectMode(UserMode mode) {
+      final authenticatedRole = session.user?.role;
+      if (session.isAuthenticated &&
+          authenticatedRole != null &&
+          authenticatedRole != mode) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Para usar dados reais de outro perfil, saia da conta atual e entre com a conta desejada. A visualização não troca a autorização da API.',
+              ),
+            ),
+          );
+        return;
+      }
+      session.switchMode(mode);
+    }
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Divider(),
       const SizedBox(height: 12),
@@ -278,13 +298,13 @@ class _ModeSwitcher extends StatelessWidget {
             avatar: const Icon(Icons.person, size: 18),
             label: const Text('Cliente'),
             selected: session.mode == UserMode.customer,
-            onSelected: (_) => session.switchMode(UserMode.customer),
+            onSelected: (_) => selectMode(UserMode.customer),
           ),
           ChoiceChip(
             avatar: const Icon(Icons.store, size: 18),
             label: const Text('Restaurante'),
             selected: session.mode == UserMode.restaurant,
-            onSelected: (_) => session.switchMode(UserMode.restaurant),
+            onSelected: (_) => selectMode(UserMode.restaurant),
           ),
         ],
       ),
