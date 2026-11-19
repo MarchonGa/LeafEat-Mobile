@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
-import 'package:leafeat_mobile/features/restaurant/data/restaurant_repository.dart';
 import 'package:leafeat_mobile/features/profile/presentation/pages/public_customer_profile_page.dart';
+import 'package:leafeat_mobile/features/restaurant/data/restaurant_repository.dart';
 import 'package:leafeat_mobile/features/restaurant/data/restaurant_review.dart';
 
 class RestaurantReviewsPage extends StatefulWidget {
@@ -13,12 +13,16 @@ class RestaurantReviewsPage extends StatefulWidget {
       _RestaurantReviewsPageState();
 }
 
-class _RestaurantReviewsPageState
-    extends State<RestaurantReviewsPage> {
+class _RestaurantReviewsPageState extends State<RestaurantReviewsPage> {
   List<RestaurantReview> _reviews = const [];
   bool _initialized = false;
   bool _loading = true;
   String? _error;
+
+  RestaurantRepository _repository() {
+    final session = AppSessionScope.read(context);
+    return RestaurantRepository(session.apiClient, session.token!);
+  }
 
   @override
   void didChangeDependencies() {
@@ -42,10 +46,7 @@ class _RestaurantReviewsPageState
       _error = null;
     });
     try {
-      final reviews = await RestaurantRepository(
-        session.apiClient,
-        session.token!,
-      ).reviews();
+      final reviews = await _repository().reviews();
       if (!mounted) return;
       setState(() {
         _reviews = reviews;
@@ -57,6 +58,94 @@ class _RestaurantReviewsPageState
         _loading = false;
         _error = error.toString();
       });
+    }
+  }
+
+  Future<String?> _textDialog({
+    required String title,
+    required String label,
+    required String? initialValue,
+    required int maxLength,
+    required bool allowEmpty,
+  }) async {
+    final controller = TextEditingController(text: initialValue);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          maxLines: 5,
+          maxLength: maxLength,
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (!allowEmpty && value.isEmpty) return;
+              Navigator.of(context).pop(value);
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return result;
+  }
+
+  Future<void> _editResponse(RestaurantReview review) async {
+    final response = await _textDialog(
+      title: review.restaurantResponse == null
+          ? 'Responder avaliação'
+          : 'Editar resposta pública',
+      label: 'Resposta oficial do restaurante',
+      initialValue: review.restaurantResponse,
+      maxLength: 1000,
+      allowEmpty: false,
+    );
+    if (response == null || !mounted) return;
+    try {
+      await _repository().respondToReview(review.id, response);
+      if (mounted) _load();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+    }
+  }
+
+  Future<void> _editNote(RestaurantReview review) async {
+    final note = await _textDialog(
+      title: 'Anotação interna',
+      label: 'Registro privado para acompanhamento',
+      initialValue: review.internalNote,
+      maxLength: 2000,
+      allowEmpty: true,
+    );
+    if (note == null || !mounted) return;
+    try {
+      await _repository().saveReviewInternalNote(
+        review.id,
+        note.isEmpty ? null : note,
+      );
+      if (mounted) _load();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
     }
   }
 
@@ -90,7 +179,6 @@ class _RestaurantReviewsPageState
                         leading: const Icon(Icons.error_outline),
                         title: Text(_error!),
                         trailing: IconButton(
-                          tooltip: 'Tentar novamente',
                           onPressed: _load,
                           icon: const Icon(Icons.refresh),
                         ),
@@ -99,20 +187,17 @@ class _RestaurantReviewsPageState
                   if (_reviews.isEmpty && _error == null)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 64),
-                      child: Column(
-                        children: [
-                          Icon(Icons.rate_review_outlined, size: 56),
-                          SizedBox(height: 12),
-                          Text(
-                            'Nenhuma avaliação recebida até o momento.',
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                      child: Center(
+                        child: Text('Nenhuma avaliação recebida.'),
                       ),
                     )
                   else
                     ..._reviews.map(
-                      (review) => _ReviewCard(review: review),
+                      (review) => _ReviewCard(
+                        review: review,
+                        onRespond: () => _editResponse(review),
+                        onNote: () => _editNote(review),
+                      ),
                     ),
                 ],
               ),
@@ -122,9 +207,15 @@ class _RestaurantReviewsPageState
 }
 
 class _ReviewCard extends StatelessWidget {
-  const _ReviewCard({required this.review});
+  const _ReviewCard({
+    required this.review,
+    required this.onRespond,
+    required this.onNote,
+  });
 
   final RestaurantReview review;
+  final VoidCallback onRespond;
+  final VoidCallback onNote;
 
   @override
   Widget build(BuildContext context) {
@@ -148,11 +239,9 @@ class _ReviewCard extends StatelessWidget {
                     children: [
                       Text(
                         review.customerName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      Text(_formatDate(review.createdAt)),
+                      Text('Avaliação em ${_date(review.createdAt)}'),
                     ],
                   ),
                 ),
@@ -170,58 +259,95 @@ class _ReviewCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (review.dishName != null) ...[
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(Icons.lunch_dining_outlined, size: 18),
-                  const SizedBox(width: 6),
-                  Expanded(child: Text(review.dishName!)),
-                ],
+            const SizedBox(height: 10),
+            Card(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: ListTile(
+                leading: const Icon(Icons.verified_user_outlined),
+                title: const Text('Presença confirmada'),
+                subtitle: Text(
+                  'Visita marcada para ${_date(review.visitScheduledAt)}'
+                  '${review.visitConfirmedAt == null ? '' : '\nConfirmada em ${_date(review.visitConfirmedAt!)}'}',
+                ),
               ),
-            ],
-            const SizedBox(height: 12),
+            ),
+            if (review.dishName != null)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.lunch_dining_outlined),
+                title: Text(review.dishName!),
+              ),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                Chip(
-                  avatar: const Icon(Icons.restaurant, size: 18),
-                  label: Text('Prato: ${review.dishRating}'),
-                ),
-                Chip(
-                  avatar: const Icon(Icons.storefront, size: 18),
-                  label: Text(
-                    'Ambiente: ${review.environmentRating}',
-                  ),
-                ),
-                Chip(
-                  avatar: const Icon(Icons.thumb_up_outlined, size: 18),
-                  label: Text('Útil: ${review.helpfulCount}'),
-                ),
-                Chip(
-                  avatar: const Icon(Icons.thumb_down_outlined, size: 18),
-                  label: Text(
-                    'Não útil: ${review.notHelpfulCount}',
-                  ),
-                ),
+                Chip(label: Text('Prato: ${review.dishRating}')),
+                Chip(label: Text('Ambiente: ${review.environmentRating}')),
+                Chip(label: Text('Útil: ${review.helpfulCount}')),
+                Chip(label: Text('Não útil: ${review.notHelpfulCount}')),
               ],
             ),
             if (review.comment.trim().isNotEmpty) ...[
               const SizedBox(height: 12),
               Text(review.comment),
             ],
+            if (review.restaurantResponse != null) ...[
+              const Divider(height: 28),
+              const Text(
+                'Resposta pública do restaurante',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              Text(review.restaurantResponse!),
+              if (review.responseUpdatedAt != null)
+                Text(
+                  'Editada em ${_date(review.responseUpdatedAt!)}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+            ],
+            if (review.internalNote != null) ...[
+              const SizedBox(height: 12),
+              Card(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: ListTile(
+                  leading: const Icon(Icons.lock_outline),
+                  title: const Text('Anotação interna'),
+                  subtitle: Text(review.internalNote!),
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                FilledButton.tonalIcon(
+                  onPressed: onRespond,
+                  icon: const Icon(Icons.reply),
+                  label: Text(
+                    review.restaurantResponse == null
+                        ? 'Responder'
+                        : 'Editar resposta',
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onNote,
+                  icon: const Icon(Icons.lock_outline),
+                  label: const Text('Anotação interna'),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    final local = date.toLocal();
-    return '${local.day.toString().padLeft(2, '0')}/'
-        '${local.month.toString().padLeft(2, '0')}/'
-        '${local.year}';
+  static String _date(DateTime value) {
+    final day = value.day.toString().padLeft(2, '0');
+    final month = value.month.toString().padLeft(2, '0');
+    final hour = value.hour.toString().padLeft(2, '0');
+    final minute = value.minute.toString().padLeft(2, '0');
+    return '$day/$month/${value.year} às $hour:$minute';
   }
 }
 
