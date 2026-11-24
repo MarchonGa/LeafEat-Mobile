@@ -4,6 +4,7 @@ import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/input/date_input_formatter.dart';
 import 'package:leafeat_mobile/core/theme/app_colors.dart';
 import 'package:leafeat_mobile/core/network/api_exception.dart';
+import 'package:phone_form_field/phone_form_field.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -19,6 +20,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _confirmation = TextEditingController();
   final _name = TextEditingController();
   final _email = TextEditingController();
+  final _phone = PhoneController(initialValue: PhoneNumber.parse('+55'));
   final _birthDate = TextEditingController();
   final _cnpj = TextEditingController();
   final _zipCode = TextEditingController();
@@ -50,6 +52,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _confirmation.dispose();
     _name.dispose();
     _email.dispose();
+    _phone.dispose();
     _birthDate.dispose();
     _cnpj.dispose();
     _zipCode.dispose();
@@ -88,6 +91,7 @@ class _RegisterPageState extends State<RegisterPage> {
           ? await session.authRepository.registerRestaurant({
               'businessName': _name.text.trim(),
               'email': _email.text.trim(),
+              'phone': _phoneE164,
               'cnpj': _cnpj.text,
               'password': _password.text,
               'confirmPassword': _confirmation.text,
@@ -100,6 +104,7 @@ class _RegisterPageState extends State<RegisterPage> {
           : await session.authRepository.registerCustomer({
               'name': _name.text.trim(),
               'email': _email.text.trim(),
+              'phone': _phoneE164,
               'password': _password.text,
               'confirmPassword': _confirmation.text,
               'dietaryRestrictions': _customerRestrictions,
@@ -115,6 +120,8 @@ class _RegisterPageState extends State<RegisterPage> {
       if (mounted) setState(() => _submitting = false);
     }
   }
+
+  String get _phoneE164 => '+${_phone.value.countryCode}${_phone.value.nsn}';
 
   List<String> get _customerRestrictions {
     final restrictions = <String>{..._allergies};
@@ -224,7 +231,7 @@ class _RegisterPageState extends State<RegisterPage> {
             if (restaurant) _field('Razão social', validator: _required),
             if (restaurant) _field('CNPJ', controller: _cnpj, hint: '00.000.000/0000-00', keyboard: TextInputType.number, validator: (value) => value == null || value.replaceAll(RegExp(r'\D'), '').length != 14 ? 'Informe os 14 números do CNPJ.' : null),
             _field('E-mail', controller: _email, keyboard: TextInputType.emailAddress, validator: _emailRule),
-            _field('Telefone', hint: '(00) 00000-0000', keyboard: TextInputType.phone, validator: _required),
+            _phoneField(),
             if (!restaurant)
               _field(
                 'Data de nascimento',
@@ -311,6 +318,40 @@ class _RegisterPageState extends State<RegisterPage> {
       _field('Categoria', controller: _category, hint: 'Ex.: saudável, regional', validator: _required),
       _field('Descrição do estabelecimento', controller: _description, validator: _required, maxLines: 3),
     ]);
+  }
+
+  Widget _phoneField() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: PhoneFormField(
+        controller: _phone,
+        decoration: const InputDecoration(
+          labelText: 'Telefone',
+          hintText: '(88) 88888-8888',
+          border: OutlineInputBorder(),
+        ),
+        countrySelectorNavigator: const CountrySelectorNavigator.modalBottomSheet(
+          favorites: [IsoCode.BR, IsoCode.PT, IsoCode.US],
+        ),
+        countryButtonStyle: const CountryButtonStyle(
+          showDialCode: true,
+          showFlag: true,
+          flagSize: 18,
+        ),
+        validator: PhoneValidator.compose([
+          PhoneValidator.required(
+            context,
+            errorText: 'Informe o telefone.',
+          ),
+          PhoneValidator.valid(
+            context,
+            errorText: 'Informe um telefone válido para o país selecionado.',
+          ),
+        ]),
+        keyboardType: TextInputType.phone,
+        autofillHints: const [AutofillHints.telephoneNumber],
+      ),
+    );
   }
 
   Widget _field(String label, {TextEditingController? controller, String? hint, required FormFieldValidator<String> validator, TextInputType keyboard = TextInputType.text, int maxLines = 1, List<TextInputFormatter>? inputFormatters, Widget? suffixIcon, String? suffixText}) {

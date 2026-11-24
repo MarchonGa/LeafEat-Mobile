@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:leafeat_mobile/app/session/app_session.dart';
 import 'package:leafeat_mobile/core/theme/app_theme.dart';
 import 'package:leafeat_mobile/features/welcome/presentation/pages/welcome_page.dart';
+import 'package:phone_form_field/phone_form_field.dart';
 
 class LeafEatApp extends StatefulWidget {
   const LeafEatApp({super.key});
@@ -33,6 +34,8 @@ class _LeafEatAppState extends State<LeafEatApp> {
         title: 'LeafEat',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
+        localizationsDelegates: PhoneFieldLocalization.delegates,
+        supportedLocales: PhoneFieldLocalization.supportedLocales,
         home: const WelcomePage(),
       ),
     );
