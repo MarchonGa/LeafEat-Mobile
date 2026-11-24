@@ -349,6 +349,7 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         ]),
         keyboardType: TextInputType.phone,
+        shouldLimitLengthByCountry: true,
         autofillHints: const [AutofillHints.telephoneNumber],
       ),
     );
